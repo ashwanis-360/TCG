@@ -14,8 +14,8 @@ class MailUtility:
     def __init__(self):
         self.smtp_host = "smtp.office365.com"
         self.smtp_port = 587
-        self.sender_email = "unite.automation@360logica.com"
-        self.sender_password = "kyzrcstqbgjygxlk"  # Use environment variables in a real-world scenario
+        self.sender_email = "Notificationemail"
+        self.sender_password = "Configure"  # Use environment variables in a real-world scenario
         self.config_file = "../config.ini"  # Path to the property file
 
     def read_property(self, key):
