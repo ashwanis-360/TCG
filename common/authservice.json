@@ -1,0 +1,416 @@
+{
+  "integration_credentials": [
+    {
+      "column_name": "id",
+      "column_type": "int",
+      "nullable": "NO",
+      "key": "PRI",
+      "default": null,
+      "extra": "auto_increment"
+    },
+    {
+      "column_name": "integration_id",
+      "column_type": "int",
+      "nullable": "YES",
+      "key": "MUL",
+      "default": null,
+      "extra": ""
+    },
+    {
+      "column_name": "user_id",
+      "column_type": "int",
+      "nullable": "YES",
+      "key": "MUL",
+      "default": null,
+      "extra": ""
+    },
+    {
+      "column_name": "project_id",
+      "column_type": "int",
+      "nullable": "YES",
+      "key": "MUL",
+      "default": null,
+      "extra": ""
+    },
+    {
+      "column_name": "username",
+      "column_type": "varchar(45)",
+      "nullable": "YES",
+      "key": "",
+      "default": null,
+      "extra": ""
+    },
+    {
+      "column_name": "password",
+      "column_type": "longtext",
+      "nullable": "YES",
+      "key": "",
+      "default": null,
+      "extra": ""
+    }
+  ],
+  "integrations": [
+    {
+      "column_name": "id",
+      "column_type": "int",
+      "nullable": "NO",
+      "key": "PRI",
+      "default": null,
+      "extra": "auto_increment"
+    },
+    {
+      "column_name": "type",
+      "column_type": "varchar(45)",
+      "nullable": "YES",
+      "key": "",
+      "default": null,
+      "extra": ""
+    },
+    {
+      "column_name": "url",
+      "column_type": "varchar(120)",
+      "nullable": "YES",
+      "key": "",
+      "default": null,
+      "extra": ""
+    },
+    {
+      "column_name": "project_id",
+      "column_type": "int",
+      "nullable": "NO",
+      "key": "MUL",
+      "default": null,
+      "extra": ""
+    },
+    {
+      "column_name": "enable",
+      "column_type": "tinyint",
+      "nullable": "YES",
+      "key": "",
+      "default": "0",
+      "extra": ""
+    },
+    {
+      "column_name": "tool",
+      "column_type": "varchar(45)",
+      "nullable": "YES",
+      "key": "",
+      "default": null,
+      "extra": ""
+    }
+  ],
+  "permissions": [
+    {
+      "column_name": "id",
+      "column_type": "int",
+      "nullable": "NO",
+      "key": "PRI",
+      "default": null,
+      "extra": "auto_increment"
+    },
+    {
+      "column_name": "role_id",
+      "column_type": "int",
+      "nullable": "YES",
+      "key": "UNI",
+      "default": null,
+      "extra": ""
+    },
+    {
+      "column_name": "can_generate_test_cases",
+      "column_type": "tinyint",
+      "nullable": "YES",
+      "key": "",
+      "default": null,
+      "extra": ""
+    },
+    {
+      "column_name": "can_create_suite",
+      "column_type": "tinyint",
+      "nullable": "YES",
+      "key": "",
+      "default": null,
+      "extra": ""
+    },
+    {
+      "column_name": "can_view_report",
+      "column_type": "tinyint",
+      "nullable": "YES",
+      "key": "",
+      "default": null,
+      "extra": ""
+    },
+    {
+      "column_name": "permission",
+      "column_type": "varchar(255)",
+      "nullable": "YES",
+      "key": "",
+      "default": null,
+      "extra": ""
+    },
+    {
+      "column_name": "permissions",
+      "column_type": "varchar(255)",
+      "nullable": "YES",
+      "key": "",
+      "default": null,
+      "extra": ""
+    }
+  ],
+  "project": [
+    {
+      "column_name": "id",
+      "column_type": "int",
+      "nullable": "NO",
+      "key": "PRI",
+      "default": null,
+      "extra": "auto_increment"
+    },
+    {
+      "column_name": "project_name",
+      "column_type": "varchar(45)",
+      "nullable": "YES",
+      "key": "",
+      "default": null,
+      "extra": ""
+    },
+    {
+      "column_name": "project_type",
+      "column_type": "enum('Automation','Manual','Data')",
+      "nullable": "YES",
+      "key": "",
+      "default": null,
+      "extra": ""
+    },
+    {
+      "column_name": "description",
+      "column_type": "longtext",
+      "nullable": "YES",
+      "key": "",
+      "default": null,
+      "extra": ""
+    },
+    {
+      "column_name": "created_at",
+      "column_type": "datetime",
+      "nullable": "YES",
+      "key": "",
+      "default": "CURRENT_TIMESTAMP",
+      "extra": "DEFAULT_GENERATED"
+    },
+    {
+      "column_name": "updated_at",
+      "column_type": "datetime",
+      "nullable": "YES",
+      "key": "",
+      "default": "CURRENT_TIMESTAMP",
+      "extra": "DEFAULT_GENERATED on update CURRENT_TIMESTAMP"
+    },
+    {
+      "column_name": "manual_repo",
+      "column_type": "varchar(255)",
+      "nullable": "NO",
+      "key": "",
+      "default": null,
+      "extra": ""
+    },
+    {
+      "column_name": "automation_repo",
+      "column_type": "varchar(255)",
+      "nullable": "YES",
+      "key": "",
+      "default": null,
+      "extra": ""
+    },
+    {
+      "column_name": "linked",
+      "column_type": "tinyint",
+      "nullable": "YES",
+      "key": "",
+      "default": null,
+      "extra": ""
+    },
+    {
+      "column_name": "llm_model",
+      "column_type": "varchar(45)",
+      "nullable": "YES",
+      "key": "",
+      "default": null,
+      "extra": ""
+    }
+  ],
+  "project_assignment": [
+    {
+      "column_name": "assignment_id",
+      "column_type": "int",
+      "nullable": "NO",
+      "key": "PRI",
+      "default": null,
+      "extra": "auto_increment"
+    },
+    {
+      "column_name": "user_id",
+      "column_type": "int",
+      "nullable": "YES",
+      "key": "MUL",
+      "default": null,
+      "extra": ""
+    },
+    {
+      "column_name": "project_id",
+      "column_type": "int",
+      "nullable": "YES",
+      "key": "MUL",
+      "default": null,
+      "extra": ""
+    },
+    {
+      "column_name": "role_id",
+      "column_type": "int",
+      "nullable": "YES",
+      "key": "MUL",
+      "default": null,
+      "extra": ""
+    },
+    {
+      "column_name": "assigned_at",
+      "column_type": "datetime",
+      "nullable": "YES",
+      "key": "",
+      "default": "CURRENT_TIMESTAMP",
+      "extra": "DEFAULT_GENERATED"
+    }
+  ],
+  "role": [
+    {
+      "column_name": "id",
+      "column_type": "int",
+      "nullable": "NO",
+      "key": "PRI",
+      "default": null,
+      "extra": "auto_increment"
+    },
+    {
+      "column_name": "role_name",
+      "column_type": "varchar(45)",
+      "nullable": "YES",
+      "key": "",
+      "default": null,
+      "extra": ""
+    },
+    {
+      "column_name": "can_generate_test_cases",
+      "column_type": "varchar(255)",
+      "nullable": "YES",
+      "key": "",
+      "default": null,
+      "extra": ""
+    },
+    {
+      "column_name": "can_create_suite",
+      "column_type": "varchar(255)",
+      "nullable": "YES",
+      "key": "",
+      "default": null,
+      "extra": ""
+    },
+    {
+      "column_name": "can_view_report",
+      "column_type": "varchar(255)",
+      "nullable": "YES",
+      "key": "",
+      "default": null,
+      "extra": ""
+    },
+    {
+      "column_name": "permissions_role_id",
+      "column_type": "bigint",
+      "nullable": "NO",
+      "key": "",
+      "default": null,
+      "extra": ""
+    }
+  ],
+  "user": [
+    {
+      "column_name": "user_id",
+      "column_type": "int",
+      "nullable": "NO",
+      "key": "PRI",
+      "default": null,
+      "extra": "auto_increment"
+    },
+    {
+      "column_name": "username",
+      "column_type": "text",
+      "nullable": "YES",
+      "key": "",
+      "default": null,
+      "extra": ""
+    },
+    {
+      "column_name": "password",
+      "column_type": "text",
+      "nullable": "YES",
+      "key": "",
+      "default": null,
+      "extra": ""
+    },
+    {
+      "column_name": "role",
+      "column_type": "int",
+      "nullable": "YES",
+      "key": "",
+      "default": null,
+      "extra": ""
+    },
+    {
+      "column_name": "enabled",
+      "column_type": "int",
+      "nullable": "YES",
+      "key": "",
+      "default": null,
+      "extra": ""
+    },
+    {
+      "column_name": "created_at",
+      "column_type": "datetime",
+      "nullable": "YES",
+      "key": "",
+      "default": "CURRENT_TIMESTAMP",
+      "extra": "DEFAULT_GENERATED"
+    },
+    {
+      "column_name": "user_display_name",
+      "column_type": "varchar(255)",
+      "nullable": "YES",
+      "key": "",
+      "default": null,
+      "extra": ""
+    },
+    {
+      "column_name": "last_updated_at",
+      "column_type": "datetime",
+      "nullable": "YES",
+      "key": "",
+      "default": "CURRENT_TIMESTAMP",
+      "extra": "DEFAULT_GENERATED on update CURRENT_TIMESTAMP"
+    },
+    {
+      "column_name": "api_key",
+      "column_type": "longtext",
+      "nullable": "YES",
+      "key": "",
+      "default": null,
+      "extra": ""
+    },
+    {
+      "column_name": "llm_key",
+      "column_type": "varchar(255)",
+      "nullable": "YES",
+      "key": "",
+      "default": null,
+      "extra": ""
+    }
+  ]
+}

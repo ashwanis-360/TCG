@@ -1,0 +1,958 @@
+{
+  "com_log": [
+    {
+      "column_name": "id",
+      "column_type": "int",
+      "nullable": "NO",
+      "key": "PRI",
+      "default": null,
+      "extra": "auto_increment"
+    },
+    {
+      "column_name": "project_id",
+      "column_type": "int",
+      "nullable": "YES",
+      "key": "",
+      "default": null,
+      "extra": ""
+    },
+    {
+      "column_name": "userstory_id",
+      "column_type": "int",
+      "nullable": "YES",
+      "key": "",
+      "default": null,
+      "extra": ""
+    },
+    {
+      "column_name": "stage",
+      "column_type": "int",
+      "nullable": "YES",
+      "key": "",
+      "default": null,
+      "extra": ""
+    },
+    {
+      "column_name": "before_chat",
+      "column_type": "longtext",
+      "nullable": "YES",
+      "key": "",
+      "default": null,
+      "extra": ""
+    },
+    {
+      "column_name": "after_chat",
+      "column_type": "longtext",
+      "nullable": "YES",
+      "key": "",
+      "default": null,
+      "extra": ""
+    },
+    {
+      "column_name": "created",
+      "column_type": "datetime",
+      "nullable": "YES",
+      "key": "",
+      "default": "CURRENT_TIMESTAMP",
+      "extra": "DEFAULT_GENERATED"
+    },
+    {
+      "column_name": "updated",
+      "column_type": "datetime",
+      "nullable": "YES",
+      "key": "",
+      "default": "CURRENT_TIMESTAMP",
+      "extra": "DEFAULT_GENERATED on update CURRENT_TIMESTAMP"
+    },
+    {
+      "column_name": "additional_details",
+      "column_type": "varchar(100)",
+      "nullable": "YES",
+      "key": "",
+      "default": null,
+      "extra": ""
+    }
+  ],
+  "feature_idea": [
+    {
+      "column_name": "id",
+      "column_type": "int",
+      "nullable": "NO",
+      "key": "PRI",
+      "default": null,
+      "extra": "auto_increment"
+    },
+    {
+      "column_name": "description",
+      "column_type": "varchar(300)",
+      "nullable": "YES",
+      "key": "",
+      "default": null,
+      "extra": ""
+    },
+    {
+      "column_name": "approach",
+      "column_type": "json",
+      "nullable": "YES",
+      "key": "",
+      "default": null,
+      "extra": ""
+    },
+    {
+      "column_name": "idea_id",
+      "column_type": "int",
+      "nullable": "YES",
+      "key": "",
+      "default": null,
+      "extra": ""
+    }
+  ],
+  "ideated_user_story": [
+    {
+      "column_name": "id",
+      "column_type": "int",
+      "nullable": "NO",
+      "key": "PRI",
+      "default": null,
+      "extra": "auto_increment"
+    },
+    {
+      "column_name": "prerequesites",
+      "column_type": "json",
+      "nullable": "YES",
+      "key": "",
+      "default": null,
+      "extra": ""
+    },
+    {
+      "column_name": "summary",
+      "column_type": "varchar(300)",
+      "nullable": "YES",
+      "key": "",
+      "default": null,
+      "extra": ""
+    },
+    {
+      "column_name": "actions",
+      "column_type": "json",
+      "nullable": "YES",
+      "key": "",
+      "default": null,
+      "extra": ""
+    },
+    {
+      "column_name": "test_data",
+      "column_type": "json",
+      "nullable": "YES",
+      "key": "",
+      "default": null,
+      "extra": ""
+    },
+    {
+      "column_name": "acceptance_criteria",
+      "column_type": "json",
+      "nullable": "YES",
+      "key": "",
+      "default": null,
+      "extra": ""
+    },
+    {
+      "column_name": "feature_id",
+      "column_type": "int",
+      "nullable": "YES",
+      "key": "",
+      "default": null,
+      "extra": ""
+    }
+  ],
+  "intial_idea": [
+    {
+      "column_name": "id",
+      "column_type": "int",
+      "nullable": "NO",
+      "key": "PRI",
+      "default": null,
+      "extra": "auto_increment"
+    },
+    {
+      "column_name": "input",
+      "column_type": "longtext",
+      "nullable": "NO",
+      "key": "",
+      "default": null,
+      "extra": ""
+    },
+    {
+      "column_name": "executive_summary",
+      "column_type": "longtext",
+      "nullable": "YES",
+      "key": "",
+      "default": null,
+      "extra": ""
+    },
+    {
+      "column_name": "business_objectives",
+      "column_type": "longtext",
+      "nullable": "YES",
+      "key": "",
+      "default": null,
+      "extra": ""
+    },
+    {
+      "column_name": "status",
+      "column_type": "varchar(45)",
+      "nullable": "YES",
+      "key": "",
+      "default": null,
+      "extra": ""
+    }
+  ],
+  "planning_item": [
+    {
+      "column_name": "created",
+      "column_type": "datetime",
+      "nullable": "NO",
+      "key": "",
+      "default": "CURRENT_TIMESTAMP",
+      "extra": "DEFAULT_GENERATED"
+    },
+    {
+      "column_name": "_id",
+      "column_type": "int",
+      "nullable": "NO",
+      "key": "PRI",
+      "default": null,
+      "extra": "auto_increment"
+    },
+    {
+      "column_name": "description",
+      "column_type": "longtext",
+      "nullable": "NO",
+      "key": "",
+      "default": null,
+      "extra": ""
+    },
+    {
+      "column_name": "project_id",
+      "column_type": "int",
+      "nullable": "NO",
+      "key": "",
+      "default": null,
+      "extra": ""
+    },
+    {
+      "column_name": "story_id",
+      "column_type": "int",
+      "nullable": "NO",
+      "key": "",
+      "default": null,
+      "extra": ""
+    },
+    {
+      "column_name": "updated",
+      "column_type": "datetime",
+      "nullable": "NO",
+      "key": "",
+      "default": "CURRENT_TIMESTAMP",
+      "extra": "DEFAULT_GENERATED on update CURRENT_TIMESTAMP"
+    }
+  ],
+  "project": [
+    {
+      "column_name": "id",
+      "column_type": "int",
+      "nullable": "NO",
+      "key": "PRI",
+      "default": null,
+      "extra": "auto_increment"
+    },
+    {
+      "column_name": "name",
+      "column_type": "varchar(45)",
+      "nullable": "YES",
+      "key": "",
+      "default": null,
+      "extra": ""
+    },
+    {
+      "column_name": "description",
+      "column_type": "longtext",
+      "nullable": "YES",
+      "key": "",
+      "default": null,
+      "extra": ""
+    },
+    {
+      "column_name": "repo_path",
+      "column_type": "varchar(45)",
+      "nullable": "YES",
+      "key": "",
+      "default": null,
+      "extra": ""
+    }
+  ],
+  "qna": [
+    {
+      "column_name": "id",
+      "column_type": "int",
+      "nullable": "NO",
+      "key": "PRI",
+      "default": null,
+      "extra": "auto_increment"
+    },
+    {
+      "column_name": "query",
+      "column_type": "longtext",
+      "nullable": "YES",
+      "key": "",
+      "default": null,
+      "extra": ""
+    },
+    {
+      "column_name": "context",
+      "column_type": "longtext",
+      "nullable": "YES",
+      "key": "",
+      "default": null,
+      "extra": ""
+    },
+    {
+      "column_name": "answer",
+      "column_type": "longtext",
+      "nullable": "YES",
+      "key": "",
+      "default": null,
+      "extra": ""
+    },
+    {
+      "column_name": "project_id",
+      "column_type": "int",
+      "nullable": "YES",
+      "key": "",
+      "default": null,
+      "extra": ""
+    },
+    {
+      "column_name": "userstory_id",
+      "column_type": "int",
+      "nullable": "YES",
+      "key": "",
+      "default": null,
+      "extra": ""
+    },
+    {
+      "column_name": "created",
+      "column_type": "datetime",
+      "nullable": "YES",
+      "key": "",
+      "default": "CURRENT_TIMESTAMP",
+      "extra": "DEFAULT_GENERATED"
+    },
+    {
+      "column_name": "updated",
+      "column_type": "datetime",
+      "nullable": "YES",
+      "key": "",
+      "default": "CURRENT_TIMESTAMP",
+      "extra": "DEFAULT_GENERATED on update CURRENT_TIMESTAMP"
+    },
+    {
+      "column_name": "knowledge_exist",
+      "column_type": "tinyint",
+      "nullable": "YES",
+      "key": "",
+      "default": null,
+      "extra": ""
+    }
+  ],
+  "requirments": [
+    {
+      "column_name": "id",
+      "column_type": "int",
+      "nullable": "NO",
+      "key": "PRI",
+      "default": null,
+      "extra": "auto_increment"
+    },
+    {
+      "column_name": "project_id",
+      "column_type": "int",
+      "nullable": "YES",
+      "key": "",
+      "default": null,
+      "extra": ""
+    },
+    {
+      "column_name": "userstory_id",
+      "column_type": "int",
+      "nullable": "YES",
+      "key": "",
+      "default": null,
+      "extra": ""
+    },
+    {
+      "column_name": "detail",
+      "column_type": "longtext",
+      "nullable": "YES",
+      "key": "",
+      "default": null,
+      "extra": ""
+    },
+    {
+      "column_name": "type",
+      "column_type": "varchar(45)",
+      "nullable": "YES",
+      "key": "",
+      "default": null,
+      "extra": ""
+    },
+    {
+      "column_name": "data",
+      "column_type": "blob",
+      "nullable": "YES",
+      "key": "",
+      "default": null,
+      "extra": ""
+    },
+    {
+      "column_name": "test_steps",
+      "column_type": "blob",
+      "nullable": "YES",
+      "key": "",
+      "default": null,
+      "extra": ""
+    },
+    {
+      "column_name": "bv",
+      "column_type": "tinyint",
+      "nullable": "YES",
+      "key": "",
+      "default": null,
+      "extra": ""
+    },
+    {
+      "column_name": "bv_details",
+      "column_type": "blob",
+      "nullable": "YES",
+      "key": "",
+      "default": null,
+      "extra": ""
+    },
+    {
+      "column_name": "ep",
+      "column_type": "tinyint",
+      "nullable": "YES",
+      "key": "",
+      "default": null,
+      "extra": ""
+    },
+    {
+      "column_name": "ep_details",
+      "column_type": "blob",
+      "nullable": "YES",
+      "key": "",
+      "default": null,
+      "extra": ""
+    },
+    {
+      "column_name": "st",
+      "column_type": "tinyint",
+      "nullable": "YES",
+      "key": "",
+      "default": null,
+      "extra": ""
+    },
+    {
+      "column_name": "st_details",
+      "column_type": "blob",
+      "nullable": "YES",
+      "key": "",
+      "default": null,
+      "extra": ""
+    },
+    {
+      "column_name": "dt",
+      "column_type": "tinyint",
+      "nullable": "YES",
+      "key": "",
+      "default": null,
+      "extra": ""
+    },
+    {
+      "column_name": "dt_details",
+      "column_type": "blob",
+      "nullable": "YES",
+      "key": "",
+      "default": null,
+      "extra": ""
+    },
+    {
+      "column_name": "uc",
+      "column_type": "tinyint",
+      "nullable": "YES",
+      "key": "",
+      "default": null,
+      "extra": ""
+    },
+    {
+      "column_name": "uc_details",
+      "column_type": "blob",
+      "nullable": "YES",
+      "key": "",
+      "default": null,
+      "extra": ""
+    },
+    {
+      "column_name": "created",
+      "column_type": "datetime",
+      "nullable": "YES",
+      "key": "",
+      "default": "CURRENT_TIMESTAMP",
+      "extra": "DEFAULT_GENERATED"
+    },
+    {
+      "column_name": "updated",
+      "column_type": "datetime",
+      "nullable": "YES",
+      "key": "",
+      "default": "CURRENT_TIMESTAMP",
+      "extra": "DEFAULT_GENERATED on update CURRENT_TIMESTAMP"
+    }
+  ],
+  "stage": [
+    {
+      "column_name": "_id",
+      "column_type": "int",
+      "nullable": "NO",
+      "key": "PRI",
+      "default": null,
+      "extra": "auto_increment"
+    },
+    {
+      "column_name": "stage_index",
+      "column_type": "int",
+      "nullable": "NO",
+      "key": "",
+      "default": null,
+      "extra": ""
+    },
+    {
+      "column_name": "name",
+      "column_type": "varchar(45)",
+      "nullable": "YES",
+      "key": "",
+      "default": null,
+      "extra": ""
+    },
+    {
+      "column_name": "prompt",
+      "column_type": "longtext",
+      "nullable": "YES",
+      "key": "",
+      "default": null,
+      "extra": ""
+    },
+    {
+      "column_name": "created",
+      "column_type": "datetime",
+      "nullable": "NO",
+      "key": "",
+      "default": "CURRENT_TIMESTAMP",
+      "extra": "DEFAULT_GENERATED"
+    },
+    {
+      "column_name": "updated",
+      "column_type": "datetime",
+      "nullable": "NO",
+      "key": "",
+      "default": "CURRENT_TIMESTAMP",
+      "extra": "DEFAULT_GENERATED on update CURRENT_TIMESTAMP"
+    }
+  ],
+  "stage_output": [
+    {
+      "column_name": "id",
+      "column_type": "int",
+      "nullable": "NO",
+      "key": "PRI",
+      "default": null,
+      "extra": "auto_increment"
+    },
+    {
+      "column_name": "project_id",
+      "column_type": "int",
+      "nullable": "YES",
+      "key": "",
+      "default": null,
+      "extra": ""
+    },
+    {
+      "column_name": "userstory_id",
+      "column_type": "int",
+      "nullable": "YES",
+      "key": "",
+      "default": null,
+      "extra": ""
+    },
+    {
+      "column_name": "stage",
+      "column_type": "int",
+      "nullable": "YES",
+      "key": "",
+      "default": null,
+      "extra": ""
+    },
+    {
+      "column_name": "output",
+      "column_type": "longtext",
+      "nullable": "YES",
+      "key": "",
+      "default": null,
+      "extra": ""
+    },
+    {
+      "column_name": "created",
+      "column_type": "datetime",
+      "nullable": "YES",
+      "key": "",
+      "default": "CURRENT_TIMESTAMP",
+      "extra": "DEFAULT_GENERATED"
+    },
+    {
+      "column_name": "requirment_id",
+      "column_type": "varchar(100)",
+      "nullable": "YES",
+      "key": "",
+      "default": null,
+      "extra": ""
+    }
+  ],
+  "story_details": [
+    {
+      "column_name": "id",
+      "column_type": "int",
+      "nullable": "NO",
+      "key": "PRI",
+      "default": null,
+      "extra": "auto_increment"
+    },
+    {
+      "column_name": "project_id",
+      "column_type": "int",
+      "nullable": "YES",
+      "key": "",
+      "default": null,
+      "extra": ""
+    },
+    {
+      "column_name": "userstory_id",
+      "column_type": "int",
+      "nullable": "YES",
+      "key": "",
+      "default": null,
+      "extra": ""
+    },
+    {
+      "column_name": "pre_requsite",
+      "column_type": "blob",
+      "nullable": "YES",
+      "key": "",
+      "default": null,
+      "extra": ""
+    },
+    {
+      "column_name": "summary",
+      "column_type": "longtext",
+      "nullable": "YES",
+      "key": "",
+      "default": null,
+      "extra": ""
+    },
+    {
+      "column_name": "actions",
+      "column_type": "blob",
+      "nullable": "YES",
+      "key": "",
+      "default": null,
+      "extra": ""
+    },
+    {
+      "column_name": "test_data",
+      "column_type": "blob",
+      "nullable": "YES",
+      "key": "",
+      "default": null,
+      "extra": ""
+    },
+    {
+      "column_name": "acceptance_criteria",
+      "column_type": "blob",
+      "nullable": "YES",
+      "key": "",
+      "default": null,
+      "extra": ""
+    },
+    {
+      "column_name": "created",
+      "column_type": "datetime",
+      "nullable": "YES",
+      "key": "",
+      "default": "CURRENT_TIMESTAMP",
+      "extra": "DEFAULT_GENERATED"
+    },
+    {
+      "column_name": "updated",
+      "column_type": "datetime",
+      "nullable": "YES",
+      "key": "",
+      "default": "CURRENT_TIMESTAMP",
+      "extra": "DEFAULT_GENERATED on update CURRENT_TIMESTAMP"
+    }
+  ],
+  "system_prompt": [
+    {
+      "column_name": "id",
+      "column_type": "int",
+      "nullable": "NO",
+      "key": "PRI",
+      "default": null,
+      "extra": "auto_increment"
+    },
+    {
+      "column_name": "project_id",
+      "column_type": "varchar(45)",
+      "nullable": "NO",
+      "key": "UNI",
+      "default": null,
+      "extra": ""
+    },
+    {
+      "column_name": "system_prompt",
+      "column_type": "longtext",
+      "nullable": "YES",
+      "key": "",
+      "default": null,
+      "extra": ""
+    }
+  ],
+  "test_cases": [
+    {
+      "column_name": "id",
+      "column_type": "int",
+      "nullable": "NO",
+      "key": "PRI",
+      "default": null,
+      "extra": "auto_increment"
+    },
+    {
+      "column_name": "external_ref",
+      "column_type": "varchar(45)",
+      "nullable": "YES",
+      "key": "",
+      "default": null,
+      "extra": ""
+    },
+    {
+      "column_name": "project_id",
+      "column_type": "int",
+      "nullable": "YES",
+      "key": "",
+      "default": null,
+      "extra": ""
+    },
+    {
+      "column_name": "userstory_id",
+      "column_type": "int",
+      "nullable": "YES",
+      "key": "",
+      "default": null,
+      "extra": ""
+    },
+    {
+      "column_name": "requirment_id",
+      "column_type": "int",
+      "nullable": "YES",
+      "key": "",
+      "default": null,
+      "extra": ""
+    },
+    {
+      "column_name": "technique",
+      "column_type": "varchar(100)",
+      "nullable": "YES",
+      "key": "",
+      "default": null,
+      "extra": ""
+    },
+    {
+      "column_name": "summary",
+      "column_type": "longtext",
+      "nullable": "YES",
+      "key": "",
+      "default": null,
+      "extra": ""
+    },
+    {
+      "column_name": "test_steps",
+      "column_type": "blob",
+      "nullable": "YES",
+      "key": "",
+      "default": null,
+      "extra": ""
+    },
+    {
+      "column_name": "expected_result",
+      "column_type": "longtext",
+      "nullable": "YES",
+      "key": "",
+      "default": null,
+      "extra": ""
+    },
+    {
+      "column_name": "test_data",
+      "column_type": "blob",
+      "nullable": "YES",
+      "key": "",
+      "default": null,
+      "extra": ""
+    },
+    {
+      "column_name": "created",
+      "column_type": "datetime",
+      "nullable": "YES",
+      "key": "",
+      "default": "CURRENT_TIMESTAMP",
+      "extra": "DEFAULT_GENERATED"
+    },
+    {
+      "column_name": "updated",
+      "column_type": "datetime",
+      "nullable": "YES",
+      "key": "",
+      "default": "CURRENT_TIMESTAMP",
+      "extra": "DEFAULT_GENERATED on update CURRENT_TIMESTAMP"
+    },
+    {
+      "column_name": "accepted",
+      "column_type": "tinyint",
+      "nullable": "YES",
+      "key": "",
+      "default": "0",
+      "extra": ""
+    },
+    {
+      "column_name": "priority",
+      "column_type": "varchar(45)",
+      "nullable": "YES",
+      "key": "",
+      "default": null,
+      "extra": ""
+    },
+    {
+      "column_name": "tags",
+      "column_type": "blob",
+      "nullable": "YES",
+      "key": "",
+      "default": null,
+      "extra": ""
+    },
+    {
+      "column_name": "tobeautomate",
+      "column_type": "tinyint",
+      "nullable": "YES",
+      "key": "",
+      "default": "0",
+      "extra": ""
+    }
+  ],
+  "userstory": [
+    {
+      "column_name": "_id",
+      "column_type": "int",
+      "nullable": "NO",
+      "key": "PRI",
+      "default": null,
+      "extra": "auto_increment"
+    },
+    {
+      "column_name": "project_id",
+      "column_type": "int",
+      "nullable": "YES",
+      "key": "",
+      "default": null,
+      "extra": ""
+    },
+    {
+      "column_name": "detail",
+      "column_type": "longtext",
+      "nullable": "YES",
+      "key": "",
+      "default": null,
+      "extra": ""
+    },
+    {
+      "column_name": "reference_key",
+      "column_type": "varchar(45)",
+      "nullable": "YES",
+      "key": "",
+      "default": null,
+      "extra": ""
+    },
+    {
+      "column_name": "status",
+      "column_type": "varchar(45)",
+      "nullable": "YES",
+      "key": "",
+      "default": null,
+      "extra": ""
+    },
+    {
+      "column_name": "stage",
+      "column_type": "int",
+      "nullable": "YES",
+      "key": "",
+      "default": null,
+      "extra": ""
+    },
+    {
+      "column_name": "owner",
+      "column_type": "int",
+      "nullable": "YES",
+      "key": "",
+      "default": null,
+      "extra": ""
+    },
+    {
+      "column_name": "created",
+      "column_type": "datetime",
+      "nullable": "YES",
+      "key": "",
+      "default": "CURRENT_TIMESTAMP",
+      "extra": "DEFAULT_GENERATED"
+    },
+    {
+      "column_name": "updated",
+      "column_type": "datetime",
+      "nullable": "YES",
+      "key": "",
+      "default": "CURRENT_TIMESTAMP",
+      "extra": "DEFAULT_GENERATED on update CURRENT_TIMESTAMP"
+    },
+    {
+      "column_name": "Error_details",
+      "column_type": "longtext",
+      "nullable": "YES",
+      "key": "",
+      "default": null,
+      "extra": ""
+    },
+    {
+      "column_name": "autopilot",
+      "column_type": "tinyint",
+      "nullable": "YES",
+      "key": "",
+      "default": null,
+      "extra": ""
+    }
+  ]
+}
