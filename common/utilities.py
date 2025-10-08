@@ -1,13 +1,22 @@
 import base64
+import io
+import os
+from email import policy
+from email.parser import BytesParser
 from io import BytesIO
 
+import PyPDF2
+import docx
+import extract_msg
 import mysql.connector
 import pandas as pd
 import json
 import base64
 
 import jwt
-from fastapi import Depends, HTTPException
+from docx.oxml.ns import qn
+from dotenv import load_dotenv
+from fastapi import Depends, HTTPException, UploadFile
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from jwt import PyJWTError
 from pydantic import BaseModel
@@ -15,6 +24,12 @@ from mysql.connector import Error
 from openpyxl.cell import MergedCell
 from openpyxl.styles import Side, Font, PatternFill, Alignment, Border
 from openpyxl.workbook import Workbook
+
+load_dotenv()
+
+SECRET_KEY = os.getenv("SECRET_KEY")  # Replace this with your Spring Boot secret key
+ALGORITHM = os.getenv("ALGORITHM")  # Algorithm used in your Spring Boot JWT generation
+
 
 
 def get_system_prompt(project_id):
@@ -33,25 +48,33 @@ def get_system_prompt(project_id):
 
 
 def getdb_Connection():
+    load_dotenv()
+    HOST = os.getenv("host")
+    USER = os.getenv("user")
+    PASSWORD = os.getenv("password")
+    DATABASE = os.getenv("database")
+    PORT = int(os.getenv("port"))
+    print(HOST,USER,PASSWORD,DATABASE,PORT)
     return mysql.connector.connect(
-        host="localhost",  # e.g., "localhost"
-        user="root",  # e.g., "root"
-        password="admin",  # Your MySQL password
-        database="tcg",  # The name of the database
-        port=3306
+        host=HOST,  # e.g., "localhost"
+        user=USER,  # e.g., "root"
+        password=PASSWORD,  # Your MySQL password
+        database=DATABASE,  # The name of the database
+        port=PORT
 
     )
 
 
 def getDBRecord(query: str, returnAll: bool = False):
-    db_connection = mysql.connector.connect(
-        host="localhost",  # e.g., "localhost"
-        user="root",  # e.g., "root"
-        password="admin",  # Your MySQL password
-        database="tcg",  # The name of the database
-        port=3306
-
-    )
+    # db_connection = mysql.connector.connect(
+    #     host="localhost",  # e.g., "localhost"
+    #     user="root",  # e.g., "root"
+    #     password="admin",  # Your MySQL password
+    #     database="tcg",  # The name of the database
+    #     port=3306
+    #
+    # )
+    db_connection = getdb_Connection()
     # Create a cursor object to execute SQL queries
     cursor = db_connection.cursor(dictionary=True)
     project_id = 1
@@ -76,13 +99,15 @@ def execute_query_with_values(query, values):
     db_connection = None
     try:
         # Establish a connection to the MySQL database
-        db_connection = mysql.connector.connect(
-            host="localhost",  # e.g., "localhost"
-            user="root",  # e.g., "root"
-            password="admin",  # Your MySQL password
-            database="tcg",  # The name of the database
-            port=3306
-        )
+        # db_connection = mysql.connector.connect(
+        #     host="localhost",  # e.g., "localhost"
+        #     user="root",  # e.g., "root"
+        #     password="admin",  # Your MySQL password
+        #     database="tcg",  # The name of the database
+        #     port=3306
+        #
+        # )
+        db_connection = getdb_Connection()
 
         if db_connection.is_connected():
             # Create a cursor object to execute SQL queries
@@ -123,13 +148,15 @@ def execute_query(query):
     db_connection = None
     try:
         # Establish a connection to the MySQL database
-        db_connection = mysql.connector.connect(
-            host="localhost",  # e.g., "localhost"
-            user="root",  # e.g., "root"
-            password="admin",  # Your MySQL password
-            database="tcg",  # The name of the database
-            port=3306
-        )
+        # db_connection = mysql.connector.connect(
+        #     host="localhost",  # e.g., "localhost"
+        #     user="root",  # e.g., "root"
+        #     password="admin",  # Your MySQL password
+        #     database="tcg",  # The name of the database
+        #     port=3306
+        #
+        # )
+        db_connection = getdb_Connection()
 
         if db_connection.is_connected():
             # Create a cursor object to execute SQL queries
@@ -169,13 +196,15 @@ def execute_query_param(query, params=None):
     db_connection = None
     try:
         # Establish a connection to the MySQL database
-        db_connection = mysql.connector.connect(
-            host="localhost",  # e.g., "localhost"
-            user="root",  # e.g., "root"
-            password="admin",  # Your MySQL password
-            database="tcg",  # The name of the database
-            port=3306
-        )
+        # db_connection = mysql.connector.connect(
+        #     host="localhost",  # e.g., "localhost"
+        #     user="root",  # e.g., "root"
+        #     password="admin",  # Your MySQL password
+        #     database="tcg",  # The name of the database
+        #     port=3306
+        #
+        # )
+        db_connection = getdb_Connection()
 
         if db_connection.is_connected():
             # Create a cursor object to execute SQL queries
@@ -185,9 +214,9 @@ def execute_query_param(query, params=None):
             # Execute the query passed as a parameter
 
             # Execute the query passed as a parameter
-            print(query)
-            print(params)
-            cursor.execute(query, params)
+            print("INFO: Query to Execute = ",query, " with Parameters = ",params)
+            # print(params)
+            # cursor.execute(query, params)
 
             # Commit the transaction
             db_connection.commit()
@@ -204,7 +233,8 @@ def execute_query_param(query, params=None):
 
 
     except Error as e:
-        print(f"Error while executing the query: {e}")
+        print("ERROR: Query to Execute = ", query, " with Parameters = ", params," Error Occurred =",e)
+
     finally:
         # Close the cursor and connection
         if db_connection.is_connected():
@@ -581,7 +611,8 @@ def safe_json_load(value):
         try:
             return json.loads(value)
         except json.JSONDecodeError:
-            print("Failed to parse JSON:", value)
+            print("ERROR: Type = Json Parsing. Description = Failed to parse JSON. Data to be parsed=", value)
+            # print("Failed to parse JSON:", value)
             return []
     return []
 
@@ -589,13 +620,22 @@ def safe_json_load(value):
 def fetch_all(query, params=None):
     connection = None
     try:
-        connection = mysql.connector.connect(
-            host="localhost",
-            user="root",
-            password="admin",
-            database="tcg",
-            port=3306
-        )
+        # connection = mysql.connector.connect(
+        #     host="0.0.0.0",
+        #     user="root",
+        #     password="admin",
+        #     database="tcg",
+        #     port=3306
+        # )
+        # db_connection = mysql.connector.connect(
+        #     host="localhost",  # e.g., "localhost"
+        #     user="root",  # e.g., "root"
+        #     password="admin",  # Your MySQL password
+        #     database="tcg",  # The name of the database
+        #     port=3306
+        #
+        # )
+        connection = getdb_Connection()
         cursor = connection.cursor(dictionary=True)
         cursor.execute(query, params)
         results = cursor.fetchall()
@@ -802,9 +842,6 @@ def log_stage_output(pr_id, user_story_ref, stage, json_structure_data):
     return latest_response
 
 
-SECRET_KEY = "mySecretKeymySecretKeymySecretKeymySecretKey"  # Replace this with your Spring Boot secret key
-ALGORITHM = "HS256"  # Algorithm used in your Spring Boot JWT generation
-
 security = HTTPBearer()
 
 
@@ -850,6 +887,7 @@ def create_bold_paragraph(text):
         ]
     }
 
+
 def create_ordered_list(items):
     return {
         "type": "orderedList",
@@ -865,6 +903,8 @@ def create_ordered_list(items):
             } for item in items
         ]
     }
+
+
 def extract_text_from_adf(node):
     """
     Recursively extracts text from Jira's Atlassian Document Format JSON.
@@ -885,3 +925,94 @@ def extract_text_from_adf(node):
             result += "\n"  # add line breaks between paragraphs
 
     return result.strip()
+
+
+async def extract_file_content(file: UploadFile) -> str:
+    """
+    Extracts readable text content from supported file formats:
+    txt, docx, pdf, msg, eml
+    """
+    filename = file.filename.lower()
+    extension = os.path.splitext(filename)[-1]
+    file_bytes = await file.read()
+    content = ""
+
+    try:
+        if extension == ".txt":
+            content = file_bytes.decode(errors="ignore")
+
+        elif extension == ".docx":
+            doc_stream = io.BytesIO(file_bytes)
+            doc = docx.Document(doc_stream)
+            text_parts = []
+
+            for block in doc.element.body:
+                if block.tag == qn('w:p'):  # Paragraph
+                    p = docx.text.paragraph.Paragraph(block, doc)
+                    if p.text.strip():
+                        text_parts.append(p.text.strip())
+
+                elif block.tag == qn('w:tbl'):  # Table
+                    t = docx.table.Table(block, doc)
+                    for row in t.rows:
+                        row_text = [cell.text.strip() for cell in row.cells if cell.text.strip()]
+                        if row_text:
+                            text_parts.append(" | ".join(row_text))
+
+            content = "\n".join(text_parts)
+
+        elif extension == ".pdf":
+            pdf_stream = io.BytesIO(file_bytes)
+            pdf_reader = PyPDF2.PdfReader(pdf_stream)
+            pdf_text = [page.extract_text() for page in pdf_reader.pages if page.extract_text()]
+            content = "\n".join(pdf_text)
+
+        elif extension == ".msg":
+            with open("temp.msg", "wb") as f:
+                f.write(file_bytes)
+            msg = extract_msg.Message("temp.msg")
+            content = msg.body
+            os.remove("temp.msg")
+
+        elif extension == ".eml":
+            with open("temp.eml", "wb") as f:
+                f.write(file_bytes)
+
+            with open("temp.eml", "rb") as f:
+                eml = BytesParser(policy=policy.default).parse(f)
+
+            eml_parts = [
+                f"Subject: {eml.get('subject', '')}",
+                f"From: {eml.get('from', '')}",
+                f"To: {eml.get('to', '')}",
+                f"Cc: {eml.get('cc', '')}"
+            ]
+
+            body_found = False
+            for part in eml.walk():
+                content_type = part.get_content_type()
+
+                if content_type == "text/plain" and not body_found:
+                    body = part.get_payload(decode=True).decode(
+                        part.get_content_charset() or 'utf-8', errors='replace'
+                    )
+                    eml_parts.append("\n--- Email Body ---\n" + body.strip())
+                    body_found = True
+
+                if part.get_filename():
+                    attachment_name = part.get_filename()
+                    attachment_data = part.get_payload(decode=True)
+                    with open(attachment_name, "wb") as f:
+                        f.write(attachment_data)
+                    eml_parts.append(f"[Attachment saved as {attachment_name}]")
+
+            content = "\n".join(eml_parts)
+            os.remove("temp.eml")
+
+        else:
+            content = f"Unsupported file type: {extension}"
+
+    except Exception as e:
+        content = f"Error processing {filename}: {str(e)}"
+
+    return content.strip()

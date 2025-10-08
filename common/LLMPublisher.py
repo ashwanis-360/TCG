@@ -48,7 +48,11 @@ def run_llm_pipeline(config_json: str, messages: List[Dict], response_model: Typ
     config_data = json.loads(config_json)
     config = LLMConfig(config_data)
     adapter = LLMAdapterFactory.get_adapter(config)
-    return adapter.runpydetic(messages, response_model)
+    result = adapter.runpydetic(messages, response_model)
+    if hasattr(result, "llm_response_status") and getattr(result, "llm_response_status", None) == "failed":
+        raise RuntimeError(f"LLM execution failed: {result.message}")
+    return result
+    # return adapter.runpydetic(messages, response_model)
 
 
 def run_llm_pipeline_text(config_json: str, messages: List[Dict]) -> str:

@@ -2,6 +2,7 @@ from adaptors.tm.tool_publishers import BaseToolPublisher
 import json
 import requests
 
+
 class TestinyPublisher(BaseToolPublisher):
 
     def format_test_cases(self, raw_cases):
@@ -30,7 +31,8 @@ class TestinyPublisher(BaseToolPublisher):
             }
             formatted.append(formatted_case)
         return formatted
-    def publish(self):
+
+    def publish(self, input_data: dict):
         cases = self.publisher.fetch_test_cases()
         if not cases:
             print("No test cases found.")
@@ -45,13 +47,11 @@ class TestinyPublisher(BaseToolPublisher):
             'X-Api-Key': self.publisher.get_integration_credential('password')
         }
 
-
         url = self.publisher.get_integration_credential('url') + "/api/v1/testcase/bulk"
-        print("Here is URL",url)
+        print("Here is URL", url)
         print("Here is Header", headers)
         print("Here is Payload", payload)
         response = requests.post(url, headers=headers, data=payload)
 
         print(response.text)
         return response.status_code == 200
-

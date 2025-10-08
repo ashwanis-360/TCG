@@ -16,7 +16,7 @@ class JiraAdapter(PMBaseAdapter):
         username = self.publisher.get_integration_credential('username')
         password = self.publisher.get_integration_credential('password')
         jql = f'project = "{query_params["project"]}" AND status = "{query_params["status"]}"'
-        url = f"{base_url}/rest/api/3/search"
+        url = f"{base_url}/rest/api/3/search/jql"
         params = {"jql": jql}
         print(f"[JiraAdapter] Fetching issues with JQL: {jql}")
         auth = HTTPBasicAuth(username, password)
@@ -28,12 +28,12 @@ class JiraAdapter(PMBaseAdapter):
         response = requests.get(url, headers=headers, params=params, auth=auth)
         response.raise_for_status()
         issues = response.json().get("issues", [])
-
+        print("Fetch external Tickets", issues)
         detailed_tickets = []
 
         # Fetch details for each ticket found
         for issue in issues:
-            ticket_key = issue["key"]
+            ticket_key = issue["id"]
             detail_url = f"{base_url}/rest/api/3/issue/{ticket_key}"
             print(f"[JiraAdapter] Fetching details for ticket: {ticket_key}")
             detail_response = requests.get(detail_url, headers=headers, auth=auth)
@@ -50,6 +50,7 @@ class JiraAdapter(PMBaseAdapter):
                 "description": plain_text,
                 "status": data["fields"]["status"]["name"]
             })
+
         return {"tickets": detailed_tickets}
 
     def update(self, data: dict) -> dict:

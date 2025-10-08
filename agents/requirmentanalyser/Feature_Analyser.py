@@ -507,35 +507,38 @@ def requirment_analyser(config, req: BaseModel, userstory,id):
         techniques_with_data = run_llm_pipeline(config, messages, TestDesignTechniques)
         # techniques_with_data = get_llm_response_pydantic2(apikey,
         #                                                   baseurl, model, messages, TestDesignTechniques)
-
-        data = {
-            "bv": techniques_with_data.boundary_value_analysis.applicable,
-            "bv_details": json.dumps([attr.dict() for attr in techniques_with_data.boundary_value_analysis.attributes]),
-            "ep": techniques_with_data.equivalent_class_partitioning.applicable,
-            "ep_details": json.dumps(
-                [attr.dict() for attr in techniques_with_data.equivalent_class_partitioning.attributes]),
-            "st": techniques_with_data.state_transition_diagram.applicable,
-            "st_details": json.dumps(
-                [attr.dict() for attr in techniques_with_data.state_transition_diagram.attributes]),
-            "dt": techniques_with_data.decision_table.applicable,
-            "dt_details": json.dumps([attr.dict() for attr in techniques_with_data.decision_table.attributes]),
-            "uc": techniques_with_data.use_case_testing.applicable,
-            "uc_details": json.dumps([attr.dict() for attr in techniques_with_data.use_case_testing.attributes]),
-        }
-        sql = f"""
-                    UPDATE tcg.requirments
-                    SET
-                        bv = %(bv)s,
-                        bv_details = %(bv_details)s,
-                        ep = %(ep)s,
-                        ep_details = %(ep_details)s,
-                        st = %(st)s,
-                        st_details = %(st_details)s,
-                        dt = %(dt)s,
-                        dt_details = %(dt_details)s,
-                        uc = %(uc)s,
-                        uc_details = %(uc_details)s
-                    WHERE id = {id}
-                """
-        execute_query_param(sql, data)
-        print("*********************", techniques_with_data.model_dump_json(), "************************")
+        try:
+            data = {
+                "bv": techniques_with_data.boundary_value_analysis.applicable,
+                "bv_details": json.dumps([attr.dict() for attr in techniques_with_data.boundary_value_analysis.attributes]),
+                "ep": techniques_with_data.equivalent_class_partitioning.applicable,
+                "ep_details": json.dumps(
+                    [attr.dict() for attr in techniques_with_data.equivalent_class_partitioning.attributes]),
+                "st": techniques_with_data.state_transition_diagram.applicable,
+                "st_details": json.dumps(
+                    [attr.dict() for attr in techniques_with_data.state_transition_diagram.attributes]),
+                "dt": techniques_with_data.decision_table.applicable,
+                "dt_details": json.dumps([attr.dict() for attr in techniques_with_data.decision_table.attributes]),
+                "uc": techniques_with_data.use_case_testing.applicable,
+                "uc_details": json.dumps([attr.dict() for attr in techniques_with_data.use_case_testing.attributes]),
+            }
+            sql = f"""
+                        UPDATE tcg.requirments
+                        SET
+                            bv = %(bv)s,
+                            bv_details = %(bv_details)s,
+                            ep = %(ep)s,
+                            ep_details = %(ep_details)s,
+                            st = %(st)s,
+                            st_details = %(st_details)s,
+                            dt = %(dt)s,
+                            dt_details = %(dt_details)s,
+                            uc = %(uc)s,
+                            uc_details = %(uc_details)s
+                        WHERE id = {id}
+                    """
+            execute_query_param(sql, data)
+            print("*********************", techniques_with_data.model_dump_json(), "************************")
+        except RuntimeError as e:
+            # bypass runtime: log, metrics, fallback or continue without 'plan'
+            print("Attribute Generation Failed for Requirement", e)

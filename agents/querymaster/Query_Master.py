@@ -126,6 +126,7 @@ Now, here is the user story for analysis:
     print("Total tokens in Query Planner:", num_tokens_from_messages(messages, model="gpt-3.5-turbo"))
     # print("*********************", count_tokens(messages), "************************")
     plan = run_llm_pipeline(config, messages, FunctionalityList)
+
     print("*********************", plan.model_dump_json(), "************************")
     final_list_oftest_cases = []
     data2 = plan.model_dump_json()
@@ -269,6 +270,37 @@ def knowledge_Extrator(pr_id, user_story_ref, token, search_url):
                 )
         else:
             print("Search API return some error", response.status_code)
+            # execute_query_param(
+            #     f"""UPDATE tcg.qna SET answer= "{response_json["answer"]}",knowledge_exist=1 where project_id={pr_id} and userstory_id={user_story_ref} and id={row['id']}""")
+
+def knowledge_Creater(record_id, token, search_url):
+    query_list = getDBRecord(f"""SELECT * FROM tcg.qna where id = {record_id}""",
+                             True)
+    for row in query_list:
+        print(row)  # prints the full row as a tuple
+        # Access individual columns by index, e.g.
+        search_prompt = f""""""
+        print("Query:", row['query'])
+        print("Context:", row['context'])
+        knowledge="#Question :\n"+row['query']+"\n #Answer :\n"+row['answer']
+        payload = {
+            "project_id": row['project_id'],
+            "knowledge": knowledge,
+
+        }
+
+        # url = "http://127.0.0.1:8777/search"
+        url = search_url
+        headers = {
+            # "Content-Type": "application/json",
+            "Authorization": f"Bearer {token}"
+        }
+        response = requests.post(url, json=payload, headers=headers)
+        if response.status_code == 200:
+            response_json = response.json()
+
+        else:
+            print("Add API return some error", response.status_code)
             # execute_query_param(
             #     f"""UPDATE tcg.qna SET answer= "{response_json["answer"]}",knowledge_exist=1 where project_id={pr_id} and userstory_id={user_story_ref} and id={row['id']}""")
 

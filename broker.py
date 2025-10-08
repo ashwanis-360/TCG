@@ -6,7 +6,6 @@ from dotenv import load_dotenv
 from flask import Flask, render_template, jsonify
 import json
 
-
 from agents.requirmentanalyser.Feature_Analyser import requirment_spliter
 from agents.querymaster.Query_Master import insert_query, gapAnalyser, knowledge_Extrator, assumption_maker
 from agents.brdanalyser.brdtester import BRDAutomationPipeline
@@ -15,6 +14,7 @@ from common.Notification import MailUtility, generate_email_template, generate_e
 
 from agents.storybuilder.story_builder import building_story
 from agents.testcasesdesigner.test_designer import test_designer
+from common.tokencouter import num_tokens_from_messages
 from common.utilities import getDBRecord, execute_query_param
 
 app = Flask(__name__)
@@ -27,7 +27,9 @@ update = []
 @app.route('/')
 def index():
     return render_template('index.html')
-def run_stage_1(config_json, pr_id, user_story_ref, token, search_url,is_knowledge):
+
+
+def run_stage_1(config_json, pr_id, user_story_ref, token, search_url, is_knowledge):
     updatestorystageStatus(user_story_ref, 1, None)
     updatestoryStatus(user_story_ref, "in-progress", None)
     try:
@@ -53,6 +55,7 @@ def run_stage_2(config_json, user_story_ref):
         updatestoryStatus(user_story_ref, "Error", e)
         raise
 
+
 def run_stage_3(config_json, user_story_ref):
     updatestorystageStatus(user_story_ref, 3, None)
     updatestoryStatus(user_story_ref, "in-progress", None)
@@ -63,6 +66,12 @@ def run_stage_3(config_json, user_story_ref):
     except Exception as e:
         updatestoryStatus(user_story_ref, "Error", e)
         raise
+    # except RuntimeError as e:
+    #     # bypass runtime: log, metrics, fallback or continue without 'plan'
+    #     print("Pipeline failed; continuing anyway:", e)
+
+
+
 def run_stage_4(config_json, user_story_ref):
     updatestorystageStatus(user_story_ref, 4, None)
     updatestoryStatus(user_story_ref, "in-progress", None)
@@ -74,6 +83,8 @@ def run_stage_4(config_json, user_story_ref):
     except Exception as e:
         updatestoryStatus(user_story_ref, "Error", e)
         raise
+
+
 def background_task(user_story_ref, pr_id, token):
     # chat_history = [get_system_prompt(request.json['pr_id'])]
     load_dotenv()
@@ -81,10 +92,11 @@ def background_task(user_story_ref, pr_id, token):
     model = os.getenv("MODEL")
     base_url = os.getenv("BASE_URL")
     auth_url = os.getenv("AUTH_URL")
-    search_url = os.getenv("SEARCH_URL")
+    # search_url = os.getenv("SEARCH_URL")
+    search_url = os.getenv("Query_URL")
     print(token)
 
-    api_url = auth_url + "/api/integrations/project/"+pr_id+"/LLM"
+    api_url = auth_url + "/api/integrations/project/" + str(pr_id) + "/LLM"
     bearer_token = token
     headers = {
         "Authorization": f"Bearer {bearer_token}"
@@ -105,6 +117,7 @@ def background_task(user_story_ref, pr_id, token):
     storydetail = getDBRecord(user_story_detail, False)
     autopilot = storydetail["autopilot"]
     # autopilot = False
+
     if autopilot:
         print("Coming here")
         try:
@@ -214,7 +227,7 @@ def background_task(user_story_ref, pr_id, token):
             # updatestoryStatus(user_story_ref, "Error", e)
 
 
-def deletestag_data(current_stage,user_story_ref):
+def deletestag_data(current_stage, user_story_ref):
     queries = []
 
     if current_stage == 1:
@@ -248,7 +261,7 @@ def deletestag_data(current_stage,user_story_ref):
     print("Data Deletion done from the System by the System")
 
 
-def resume_task(user_story_ref,token):
+def resume_task(user_story_ref, token):
     # # chat_history = [get_system_prompt(request.json['pr_id'])]
     load_dotenv()
     is_knowledge = os.getenv("USE_LOCAL_KNOWLEDGE_BASE")
@@ -268,7 +281,7 @@ def resume_task(user_story_ref,token):
     status = storydetail["status"]
     current_stage = int(storydetail["stage"])
 
-    api_url = auth_url + "/api/integrations/project/"+str(pr_id)+"/LLM"
+    api_url = auth_url + "/api/integrations/project/" + str(pr_id) + "/LLM"
     bearer_token = token
 
     headers = {
@@ -284,15 +297,15 @@ def resume_task(user_story_ref,token):
     # storydetail = getDBRecord(user_story_detail, False)
 
     stage_functions = [
-        lambda: run_stage_1(config_json, pr_id, user_story_ref, token, search_url,is_knowledge),
+        lambda: run_stage_1(config_json, pr_id, user_story_ref, token, search_url, is_knowledge),
         lambda: run_stage_2(config_json, user_story_ref),
         lambda: run_stage_3(config_json, user_story_ref),
         lambda: run_stage_4(config_json, user_story_ref)
     ]
     if autopilot:
         if status != "Completed":
-            deletestag_data(current_stage,user_story_ref)
-            for stage_num in range(current_stage-1, 3):  # from current stage to stage 4
+            deletestag_data(current_stage, user_story_ref)
+            for stage_num in range(current_stage - 1, 4):  # from current stage to stage 4
                 stage_functions[stage_num]()  # call respective stage
 
     # if storydetail["autopilot"]:
@@ -300,19 +313,21 @@ def resume_task(user_story_ref,token):
     #         #Delete the data for that Stage
     #         #Try all the Subsequent Stages
     else:
-    # Then Check the Over All Status
+        # Then Check the Over All Status
         if status == "Error":
-            deletestag_data(current_stage,user_story_ref)
-            stage_functions[current_stage-1]()
-            updatestoryStatus(user_story_ref, "Hold", None)
+            deletestag_data(current_stage, user_story_ref)
+            stage_functions[current_stage - 1]()
+            if current_stage != 4:
+                updatestoryStatus(user_story_ref, "Hold", None)
+
             # updatestoryStatus(user_story_ref, "Hold", None)
         if status == "Hold":
             new_stage = current_stage + 1
             if new_stage <= 4:
                 # updatestorystageStatus(user_story_ref, new_stage, None)
                 stage_functions[new_stage - 1]()
-                if(new_stage<4):
-                    updatestoryStatus(user_story_ref, "Hold", None)# index = stage - 1
+                if (new_stage < 4):
+                    updatestoryStatus(user_story_ref, "Hold", None)  # index = stage - 1
     # autopilot1 = True
     # if autopilot1:
     #     try:
@@ -410,9 +425,10 @@ def resume_task(user_story_ref,token):
     #             knowledge_Extrator(pr_id, user_story_ref, token,search_url)
     #         assumption_maker(config_json,pr_id, user_story_ref)
 
-        # except Exception as e:
-        #     print("***************\n", e, "***************\n")
-        #     updatestoryStatus(user_story_ref, "Error", e)
+    # except Exception as e:
+    #     print("***************\n", e, "***************\n")
+    #     updatestoryStatus(user_story_ref, "Error", e)
+
 
 def babackground_task(request, user_story_ref, token):
     load_dotenv()
@@ -432,12 +448,10 @@ def babackground_task(request, user_story_ref, token):
     # 1) Fetch the config JSON from your API
     config_json = fetch_config_from_api(api_url, headers=headers)
     try:
-        pipeline = BRDAutomationPipeline(config=config_json,transcript=request,id=user_story_ref)
+        pipeline = BRDAutomationPipeline(config=config_json, transcript=request, id=user_story_ref)
         pipeline.run_pipeline()
     except Exception as e:
         print("Something went wrong", e)
-
-
 
 
 def updatestoryStatus(user_story_ref, current_status, exception):
@@ -453,6 +467,8 @@ def updatestoryStatus(user_story_ref, current_status, exception):
     querydata = f"""UPDATE `tcg`.`userstory` SET `status` = "{current_status}",`Error_details` = "{exception1}" WHERE `_id`={user_story_ref}"""
 
     execute_query_param(querydata)
+
+
 def updatestorystageStatus(user_story_ref, current_status, exception):
     if exception is None:
         exception = "No exception provided"
@@ -463,6 +479,7 @@ def updatestorystageStatus(user_story_ref, current_status, exception):
     querydata = f"""UPDATE `tcg`.`userstory` SET `stage` = "{current_status}" WHERE `_id`={user_story_ref}"""
 
     execute_query_param(querydata)
+
 
 #
 # # Get update method to return the latest data
@@ -1286,9 +1303,6 @@ def updatestorystageStatus(user_story_ref, current_status, exception):
 #         except Exception:
 #             testcaseallrequirment = "<p>Error in Table Geneartion</p>"
 #     update.append({"stage_name": stage_name, "id": 10, "response": testcaseallrequirment})
-
-
-
 
 
 if __name__ == '__main__':

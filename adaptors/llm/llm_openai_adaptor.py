@@ -1,7 +1,7 @@
 import json
 import time
 from abc import ABC, abstractmethod
-from typing import List, Dict, Type
+from typing import List, Dict, Type, Any
 
 import openai
 import requests
@@ -11,10 +11,18 @@ from pydantic import BaseModel
 from adaptors.llm.llm_base_adaptor import BaseLLMAdapter
 from json_repair import repair_json
 
+
+class ErrorResponseModel(BaseModel):
+    llm_response_status: str
+    error_type: str
+    message: str
+    retries: int
+
+
 class OpenAIAdapter(BaseLLMAdapter):
     """Adapter for OpenAI-compatible LLMs (including Groq, Qwen, etc.)."""
 
-    def runpydetic(self, messages: List[Dict], response_model: Type[BaseModel]) -> BaseModel | None:
+    def runpydetic(self, messages: List[Dict], response_model: Type[BaseModel]) -> BaseModel:
         print(f"[OpenAIAdapter] Calling model: {self.config.llm_model} on {self.config.base_url}")
 
         client = OpenAI(
@@ -24,6 +32,7 @@ class OpenAIAdapter(BaseLLMAdapter):
 
         retries = 0
         max_retries = 15
+        last_error = None
         while retries < max_retries:
             try:
                 # Assuming `client` is already set up for Groq API call
@@ -39,11 +48,14 @@ class OpenAIAdapter(BaseLLMAdapter):
                 return action  # If the response is successful, return it
             except openai.BadRequestError as e:
                 print(f"BadRequestError encountered: {e}. Attempt {retries + 1}/{max_retries}")
+                last_error = {"type": "BadRequestError", "message": str(e)}
                 # Log the error or inspect the response (e.g., response['error']) for further debugging
             except OpenAIError as e:
                 print(f"OpenAIError encountered: {e}. Attempt {retries + 1}/{max_retries}")
+                last_error = {"type": "OpenAIError", "message": str(e)}
             except Exception as e:
                 print(f"Unexpected error: {e}. Attempt {retries + 1}/{max_retries}")
+                last_error = {"type": "Exception", "message": str(e)}
 
             retries += 1
             if retries < max_retries:
@@ -51,7 +63,13 @@ class OpenAIAdapter(BaseLLMAdapter):
                 time.sleep(10)  # Wait for the specified delay before retrying
             else:
                 print("Max retries reached. No valid response obtained.")
-        return None
+        # return {"status": "failed", "error": last_error, "retries": retries}
+        return ErrorResponseModel(
+            status="failed",
+            error_type=last_error["type"],
+            message=last_error["message"],
+            retries=retries
+        )
 
     def run(self, messages: List[Dict]) -> str:
         print(f"[OpenAIAdapter] Calling model: {self.config.llm_model} on {self.config.base_url}")

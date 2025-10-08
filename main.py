@@ -3,7 +3,8 @@ import json
 import os
 from base64 import b64encode
 from typing import List, Optional
-
+import datetime
+from xmlrpc.client import DateTime as XMLRPCDateTime
 import docx
 import pandas as pd
 import requests
@@ -20,10 +21,13 @@ import PyPDF2
 from adaptors.pm.JIRAAdaptor import JiraAdapter
 from adaptors.tm.kiwi import KiwiPublisher
 from adaptors.tm.testiny import TestinyPublisher
+from agents.querymaster.Query_Master import knowledge_Creater
 from common.TestCasePublisher import TestCasePublisher
 from broker import background_task, babackground_task, resume_task
 from common.pm_factory import PMFactory
-from common.utilities import TokenData, get_current_user, create_bold_paragraph, create_ordered_list
+from common.tokencouter import num_tokens_from_messages
+from common.utilities import TokenData, get_current_user, create_bold_paragraph, create_ordered_list, \
+    extract_file_content
 import extract_msg
 from common.utilities import execute_query_param, getDBRecord, execute_query_with_values, safe_json_load, \
     fetch_all, prepare_excel2
@@ -64,9 +68,9 @@ async def process_data(input_data: dict, background_tasks: BackgroundTasks,
                        user: TokenData = Depends(get_current_user)):
     username = user.username
     roles = user.roles
-    print(user.token)
-    print("i am here for sure")
-    print(input_data)
+    print("INFO : Authentication Token=",user.token," Requested Payload =",input_data)
+    # print(user.token)
+    # print(input_data)
     # logger.info("User story submitted "+input_data['user_input']+" by user "+username)
     if 2 in roles:
         pr_id = input_data['pr_id']
@@ -96,6 +100,99 @@ async def process_data(input_data: dict, background_tasks: BackgroundTasks,
     elif 5 in roles:
 
         user_story_input = input_data['user_input']
+        insert_idea_query = """
+                            INSERT INTO tcg.intial_idea (input)
+                            VALUES (%s)
+                        """
+        id = execute_query_param(insert_idea_query, (
+            user_story_input,
+        ))
+
+        background_tasks.add_task(babackground_task, user_story_input, id, user.token)
+
+        # Return 202 response immediately
+        return JSONResponse(
+            content={"message": "Request accepted", "request_id": id},
+            status_code=202)
+
+    else:
+        return JSONResponse(content={"message": "Request rejected"}, status_code=401)
+
+@app.post("/process/v2")
+async def process_data_additional_details( pr_id: int = Form(...),
+    user_input: str = Form(...),
+    autopilot: bool = Form(None),
+    key: Optional[str] = Form(None),
+    background_tasks: BackgroundTasks = None,
+    user: TokenData = Depends(get_current_user),
+    additional_context: Optional[str] = Form(None),
+    files: Optional[List[UploadFile]] = File(None),
+                                           ):
+    username = user.username
+    roles = user.roles
+    print(user.token)
+
+
+    # logger.info("User story submitted "+input_data['user_input']+" by user "+username)
+    if 2 in roles:
+        pr_id = pr_id
+        # try:
+        #     pr_id = int(pr_id) if pr_id and pr_id.strip().isdigit() else None
+        # except ValueError:
+        #     project_id = None
+        user_story_input = user_input
+        autopilot = autopilot
+        external_refe = None
+        try:
+            external_refe = key
+        except Exception as e:
+            external_refe = None
+        # logger.info("ALM ID for User story is"+external_refe)
+        #
+        # if (not additional_context or additional_context.strip() == "") and not files:
+        #     raise HTTPException(
+        #         status_code=400,
+        #         detail="At least one of 'text' or 'files' must be provided."
+        #     )
+
+            # --- Extract File Contents ---
+        results = {}
+        if files:
+            for file in files:
+                results[file.filename] = await extract_file_content(file)
+
+        # --- Combine Text + File Content ---
+        final_parts = []
+        final_parts.append(user_input)
+        final_parts.append("Additional Context Provided")
+        if additional_context and additional_context.strip():
+            final_parts.append(additional_context.strip())
+        final_parts.append("Detailed Fetched From Uploaded Documents")
+        if files:
+            for fname, fcontent in results.items():
+                final_parts.append(f"\n\n{fcontent.strip()}")
+
+        final_extracted_text = "\n".join(final_parts)
+        print("\n--- Extracted Content ---\n", final_extracted_text, "\n--- End ---\n")
+
+        userstory_ref = execute_query_param(
+            """
+            		INSERT INTO `tcg`.`userstory`
+                	(`project_id`, `detail`, `reference_key`, `status`, `owner`,`autopilot`)
+            		VALUES (%s, %s, %s, %s, %s, %s);
+            	""",
+            (pr_id, final_extracted_text, external_refe, "in-progress", 1, autopilot)
+        )
+        print("Total tokens in Query Planner:", num_tokens_from_messages(final_extracted_text, model="gpt-3.5-turbo"))
+        background_tasks.add_task(background_task, userstory_ref, pr_id, user.token)
+
+        # Return 202 response immediately
+        return JSONResponse(
+            content={"message": "Request accepted", "request_id": userstory_ref, "reference_key": external_refe},
+            status_code=202)
+    elif 5 in roles:
+
+        user_story_input = user_input
         insert_idea_query = """
                             INSERT INTO tcg.intial_idea (input)
                             VALUES (%s)
@@ -251,7 +348,7 @@ def get_updates(pr_id: str, user_story_ref: str, user: TokenData = Depends(get_c
         test_cases = f"""SELECT id,requirment_id,COALESCE(
         (SELECT detail FROM tcg.requirments WHERE id = requirment_id and userstory_id={user_story_id} ), 
         (SELECT description FROM tcg.planning_item WHERE _id = requirment_id and userstory_id={user_story_id}) ) AS 
-        requirment_detail,technique,summary ,test_steps ,expected_result,test_data,accepted,priority FROM 
+        requirment_detail,technique,summary ,test_steps ,expected_result,test_data,accepted,priority,regression,tobeautomate,external_ref FROM 
         tcg.test_cases where project_id={project_id} and userstory_id={user_story_id}  order by requirment_id asc"""
         # Query the MySQL database for matching records
         test_cases_list = getDBRecord(test_cases, True)
@@ -270,6 +367,7 @@ def get_updates(pr_id: str, user_story_ref: str, user: TokenData = Depends(get_c
         finaltest_cases_list = []
         if test_cases_list is not None:
             for row in test_cases_list:
+
                 print("$$$$$$$$$$$$$$$$$$$$$$ ", row['id'], "")
                 tempdata = {
                     "id": row['id'],
@@ -281,7 +379,11 @@ def get_updates(pr_id: str, user_story_ref: str, user: TokenData = Depends(get_c
                     "expected_result": row['expected_result'],
                     "test_data": safe_json_load(row['test_data'].decode('utf-8')),
                     "accepted": row['accepted'],
-                    "priority": row['priority']
+                    "priority": row['priority'],
+                    "tobeautomate": row['tobeautomate'],
+                    "regression": row['regression'],
+                    "external_id":row['external_ref'],
+                    "published": True if row['external_ref'] is not None else False
                 }
                 finaltest_cases_list.append(tempdata)
         # JSONResponse(content={"stage": "1","stage_id":1 "updates": jsonify(result)}, status_code=200)
@@ -322,7 +424,8 @@ async def update_review_status(input_data: dict,
 @app.post("/publish_testcase")
 async def publish_testcase(input_data: dict,
                            user: TokenData = Depends(get_current_user)):
-    publisher = TestCasePublisher(user, input_data['userstory_ref_id'])
+    print("in Comming Payload from UI",input_data )
+    publisher = TestCasePublisher(user, input_data['userstory_ref_id'],input_data)
     tool = publisher.integration['tool']
     print("Tool from API: ", tool)
     tool_map = {
@@ -335,7 +438,7 @@ async def publish_testcase(input_data: dict,
         return JSONResponse(content={"message": f"Unsupported tool: {tool}"}, status_code=400)
 
     tool_publisher = tool_map[tool](publisher)
-    success = tool_publisher.publish()
+    success = tool_publisher.publish(input_data)
 
     if success:
         return JSONResponse(content={"message": f"Published to {tool.title()} successfully"}, status_code=200)
@@ -351,6 +454,8 @@ async def publish_us(input_data: dict,
 
     publisher = PMFactory(user, project_id)
     tool = publisher.integration['tool']
+    Additonal_Config = publisher.integration['additional_config']
+
     tool_map = {
         "jira": JiraAdapter,
     }
@@ -406,7 +511,7 @@ async def publish_us(input_data: dict,
         description_content.append(create_ordered_list(result_json["acceptance_criteria"]))
 
         create_result = tool_publisher.create_ticket({
-            "project_key": "KAN",
+            "project_key": Additonal_Config["project"],
             "summary": row["summary"],
             "description": description_content,
             "issue_type": "Story"
@@ -605,8 +710,10 @@ async def update_testcase(input_data: dict,
             return jsonify({"error": "ID is required"}), 400
 
         # Prepare the fields to update
+        print(data.items())
         fields = {key: value for key, value in data.items() if
-                  key in ['summary', 'test_steps', 'expected_result', 'test_data'] and key != 'id'}
+                  key in ['summary', 'test_steps', 'expected_result', 'test_data', 'tobeautomate',
+                          'regression'] and key != 'id'}
 
         # Return an error if no fields are provided to update
         if not fields:
@@ -723,6 +830,8 @@ async def update_qna(input_data: dict,
         print(query)
         print(values)
         execute_query_with_values(query, values)
+        search_url = os.getenv("Knowledge_Addition")
+        knowledge_Creater(record_id, user.token, search_url)
 
     return JSONResponse(content={"message": "qna updated"}, status_code=200)
 
@@ -863,121 +972,126 @@ async def upload_files(background_tasks: BackgroundTasks, user: TokenData = Depe
                 detail="At least one of 'test' or 'files' must be provided."
             )
 
+        # results = {}
+        # if files:
+        #     for file in files:
+        #         filename = file.filename.lower()
+        #         extension = os.path.splitext(filename)[-1]
+        #         content = ""
+        #
+        #         file_bytes = await file.read()
+        #
+        #         if extension == ".txt":
+        #             content = file_bytes.decode(errors="ignore")
+        #
+        #
+        #         elif extension == ".docx":
+        #
+        #             doc_stream = io.BytesIO(file_bytes)
+        #
+        #             doc = docx.Document(doc_stream)
+        #
+        #             text_parts = []
+        #
+        #             # Walk document body elements in order
+        #
+        #             for block in doc.element.body:
+        #
+        #                 if block.tag == qn('w:p'):  # Paragraph
+        #
+        #                     p = docx.text.paragraph.Paragraph(block, doc)
+        #
+        #                     if p.text.strip():
+        #                         text_parts.append(p.text.strip())
+        #
+        #
+        #                 elif block.tag == qn('w:tbl'):  # Table
+        #
+        #                     t = docx.table.Table(block, doc)
+        #
+        #                     for row in t.rows:
+        #
+        #                         row_text = []
+        #
+        #                         for cell in row.cells:
+        #
+        #                             cell_text = cell.text.strip()
+        #
+        #                             if cell_text:
+        #                                 row_text.append(cell_text)
+        #
+        #                         if row_text:
+        #                             text_parts.append(" | ".join(row_text))
+        #
+        #             content = "\n".join(text_parts)
+        #
+        #         elif extension == ".pdf":
+        #
+        #             pdf_stream = io.BytesIO(file_bytes)
+        #
+        #             doc = PyPDF2.PdfReader(pdf_stream)
+        #
+        #             pdf_text = []
+        #
+        #             for page in doc.pages:
+        #
+        #                 text1 = page.extract_text()
+        #
+        #                 if text1:
+        #                     pdf_text.append(text1)
+        #
+        #             content = "\n".join(pdf_text)
+        #
+        #         elif extension == ".msg":
+        #             with open("temp.msg", "wb") as f:
+        #                 f.write(file_bytes)
+        #             msg = extract_msg.Message("temp.msg")
+        #             content = msg.body
+        #             os.remove("temp.msg")
+        #         elif extension == ".eml":
+        #             with open("temp.eml", "wb") as f:
+        #                 f.write(file_bytes)
+        #
+        #             with open("temp.eml", "rb") as f:
+        #                 eml = BytesParser(policy=policy.default).parse(f)
+        #
+        #             eml_parts = []
+        #
+        #             # Add email metadata
+        #             eml_parts.append(f"Subject: {eml['subject'] or ''}")
+        #             eml_parts.append(f"From: {eml['from'] or ''}")
+        #             eml_parts.append(f"To: {eml['to'] or ''}")
+        #             eml_parts.append(f"Cc: {eml['cc'] or ''}")
+        #
+        #             # Extract body
+        #             body_found = False
+        #             for part in eml.walk():
+        #                 content_type = part.get_content_type()
+        #                 if content_type == "text/plain" and not body_found:
+        #                     body = part.get_payload(decode=True).decode(part.get_content_charset() or 'utf-8',
+        #                                                                 errors='replace')
+        #                     eml_parts.append("\n--- Email Body ---\n" + body.strip())
+        #                     body_found = True
+        #
+        #                 # Extract attachments
+        #                 if part.get_filename():
+        #                     attachment_name = part.get_filename()
+        #                     attachment_data = part.get_payload(decode=True)
+        #                     with open(attachment_name, "wb") as f:
+        #                         f.write(attachment_data)
+        #                     eml_parts.append(f"[Attachment saved as {attachment_name}]")
+        #
+        #             content = "\n".join(eml_parts)
+        #             os.remove("temp.eml")
+        #         else:
+        #             content = f"Unsupported file type: {extension}"
+        #
+        #         results[file.filename] = content.strip()
         results = {}
         if files:
             for file in files:
-                filename = file.filename.lower()
-                extension = os.path.splitext(filename)[-1]
-                content = ""
+                results[file.filename] = await extract_file_content(file)
 
-                file_bytes = await file.read()
-
-                if extension == ".txt":
-                    content = file_bytes.decode(errors="ignore")
-
-
-                elif extension == ".docx":
-
-                    doc_stream = io.BytesIO(file_bytes)
-
-                    doc = docx.Document(doc_stream)
-
-                    text_parts = []
-
-                    # Walk document body elements in order
-
-                    for block in doc.element.body:
-
-                        if block.tag == qn('w:p'):  # Paragraph
-
-                            p = docx.text.paragraph.Paragraph(block, doc)
-
-                            if p.text.strip():
-                                text_parts.append(p.text.strip())
-
-
-                        elif block.tag == qn('w:tbl'):  # Table
-
-                            t = docx.table.Table(block, doc)
-
-                            for row in t.rows:
-
-                                row_text = []
-
-                                for cell in row.cells:
-
-                                    cell_text = cell.text.strip()
-
-                                    if cell_text:
-                                        row_text.append(cell_text)
-
-                                if row_text:
-                                    text_parts.append(" | ".join(row_text))
-
-                    content = "\n".join(text_parts)
-
-                elif extension == ".pdf":
-
-                    pdf_stream = io.BytesIO(file_bytes)
-
-                    doc = PyPDF2.PdfReader(pdf_stream)
-
-                    pdf_text = []
-
-                    for page in doc.pages:
-
-                        text1 = page.extract_text()
-
-                        if text1:
-                            pdf_text.append(text1)
-
-                    content = "\n".join(pdf_text)
-
-                elif extension == ".msg":
-                    with open("temp.msg", "wb") as f:
-                        f.write(file_bytes)
-                    msg = extract_msg.Message("temp.msg")
-                    content = msg.body
-                    os.remove("temp.msg")
-                elif extension == ".eml":
-                    with open("temp.eml", "wb") as f:
-                        f.write(file_bytes)
-
-                    with open("temp.eml", "rb") as f:
-                        eml = BytesParser(policy=policy.default).parse(f)
-
-                    eml_parts = []
-
-                    # Add email metadata
-                    eml_parts.append(f"Subject: {eml['subject'] or ''}")
-                    eml_parts.append(f"From: {eml['from'] or ''}")
-                    eml_parts.append(f"To: {eml['to'] or ''}")
-                    eml_parts.append(f"Cc: {eml['cc'] or ''}")
-
-                    # Extract body
-                    body_found = False
-                    for part in eml.walk():
-                        content_type = part.get_content_type()
-                        if content_type == "text/plain" and not body_found:
-                            body = part.get_payload(decode=True).decode(part.get_content_charset() or 'utf-8',
-                                                                        errors='replace')
-                            eml_parts.append("\n--- Email Body ---\n" + body.strip())
-                            body_found = True
-
-                        # Extract attachments
-                        if part.get_filename():
-                            attachment_name = part.get_filename()
-                            attachment_data = part.get_payload(decode=True)
-                            with open(attachment_name, "wb") as f:
-                                f.write(attachment_data)
-                            eml_parts.append(f"[Attachment saved as {attachment_name}]")
-
-                    content = "\n".join(eml_parts)
-                    os.remove("temp.eml")
-                else:
-                    content = f"Unsupported file type: {extension}"
-
-                results[file.filename] = content.strip()
         final_parts = []
         if text and text.strip():
             final_parts.append(f"{text.strip()}")
@@ -1011,6 +1125,197 @@ async def upload_files(background_tasks: BackgroundTasks, user: TokenData = Depe
 
     else:
         return JSONResponse(content={"message": "Request rejected"}, status_code=401)
+
+
+@app.get("/fetch_products/{request_id}")
+def fetch_versions(request_id: int,
+                   user: TokenData = Depends(get_current_user)):
+    """
+    Query parameters:
+      - product_id (int) : optional. If provided, returns versions for that product only.
+    """
+    publisher = TestCasePublisher(user, request_id)
+    tool = publisher.integration['tool']
+    print("Tool from API: ", tool)
+    tool_map = {
+        "testiny": TestinyPublisher,
+        "kiwi": KiwiPublisher
+    }
+
+    if tool not in tool_map:
+        print("Unsupported tool: ")
+        return JSONResponse(content={"message": f"Unsupported tool: {tool}"}, status_code=400)
+
+    tool_publisher = tool_map[tool](publisher)
+    success = tool_publisher.fetchProduct()
+
+    return JSONResponse(
+        content={"product": success},
+        status_code=200)
+
+
+@app.get("/fetch_versions/{request_id}/{product_id}")
+def fetch_versions(request_id: int, product_id: int, user: TokenData = Depends(get_current_user)):
+    """
+    Query parameters:
+      - product_id (int) : optional. If provided, returns versions for that product only.
+    """
+
+    publisher = TestCasePublisher(user, request_id)
+    tool = publisher.integration['tool']
+    print("Tool from API: ", tool)
+    tool_map = {
+        "testiny": TestinyPublisher,
+        "kiwi": KiwiPublisher
+    }
+
+    if tool not in tool_map:
+        print("Unsupported tool: ")
+        return JSONResponse(content={"message": f"Unsupported tool: {tool}"}, status_code=400)
+
+    tool_publisher = tool_map[tool](publisher)
+    success = tool_publisher.fetchVersions(product_id)
+    return JSONResponse(
+        content={"versions": success},
+        status_code=200)
+
+
+@app.get("/fetch_testplans/{request_id}/{product_id}/{version_id}")
+def fetch_testplans(request_id: int, product_id: int, version_id: int, user: TokenData = Depends(get_current_user)):
+    """
+    Query parameters:
+      - product_id (int) : required to scope test plans
+      - version (string or int) : optional — can be version id or value (e.g. "1.0" or id)
+    """
+    publisher = TestCasePublisher(user, request_id)
+    tool = publisher.integration['tool']
+    print("Tool from API: ", tool)
+    tool_map = {
+        "testiny": TestinyPublisher,
+        "kiwi": KiwiPublisher
+    }
+
+    if tool not in tool_map:
+        print("Unsupported tool: ")
+        return JSONResponse(content={"message": f"Unsupported tool: {tool}"}, status_code=400)
+
+    tool_publisher = tool_map[tool](publisher)
+    success = tool_publisher.fetchTestPlans(product_id, version_id)
+    safe_testplans = make_json_safe(success)
+    return JSONResponse(content={"testplans": safe_testplans}, status_code=200)
+
+
+def make_json_safe(data):
+    """
+    Recursively convert XMLRPCDateTime and datetime objects to ISO strings.
+    """
+    if isinstance(data, dict):
+        return {k: make_json_safe(v) for k, v in data.items()}
+    elif isinstance(data, list):
+        return [make_json_safe(i) for i in data]
+    elif isinstance(data, XMLRPCDateTime):
+        return str(data)  # already in ISO-like format
+    elif isinstance(data, datetime.datetime):
+        return data.isoformat()
+    else:
+        return data
+
+
+@app.get("/fetch_configuration/{request_id}")
+def fetch_configuration(request_id: int, user: TokenData = Depends(get_current_user)):
+    """
+        Returns hierarchical config:
+        Product -> Versions -> Test Plans -> Child Test Plans (recursive)
+        """
+    publisher = TestCasePublisher(user, request_id)
+    tool = publisher.integration['tool']
+    Additonal_Config = publisher.integration['additional_config']
+    print("Tool from API:", tool)
+
+    tool_map = {
+        "testiny": TestinyPublisher,
+        "kiwi": KiwiPublisher
+    }
+
+    if tool not in tool_map:
+        return JSONResponse(
+            content={"message": f"Unsupported tool: {tool}"},
+            status_code=400
+        )
+
+    tool_publisher = tool_map[tool](publisher)
+
+    # Step 1: Fetch all products
+    products = tool_publisher.fetchProduct(Additonal_Config)
+    print("Products",products)
+    configuration = []
+
+    for product in products:
+        product_entry = {
+            "id": product["id"],
+            "name": product["name"],
+            "version": []
+        }
+
+        # Step 2: Fetch versions for each product
+        versions = tool_publisher.fetchVersions(product["id"])
+        print("Versons", versions)
+        for version in versions:
+            version_entry = {
+                "id": version["id"],
+                "name": version["value"],
+                "test_plan": []
+            }
+
+            # Step 3: Fetch test plans (recursive handling for child test plans)
+            testplans = tool_publisher.fetchTestPlans(product["id"], version["id"])
+            print("Test plans", testplans)
+            version_entry["test_plan"] = build_testplan_hierarchy(testplans)
+
+            product_entry["version"].append(version_entry)
+
+        configuration.append(product_entry)
+
+    return JSONResponse(content={"Configuration": make_json_safe(configuration)}, status_code=200)
+
+def build_testplan_hierarchy(testplans):
+        """
+        Build recursive hierarchy of test plans using parent -> children relationship
+        """
+        # Convert testplans into dict for fast lookup
+        plan_dict = {plan["id"]: {**plan, "children": []} for plan in testplans}
+
+        root_plans = []
+
+        for plan in testplans:
+            parent_id = plan.get("parent")
+            if parent_id:
+                # Attach this plan as a child of its parent
+                if parent_id in plan_dict:
+                    plan_dict[parent_id]["children"].append(plan_dict[plan["id"]])
+            else:
+                # No parent → root level plan
+                root_plans.append(plan_dict[plan["id"]])
+
+        # Recursive JSON formatter
+        def attach_children(plan):
+            return {
+                "id": plan["id"],
+                "name": plan["name"],
+                "child Test plan": [attach_children(child) for child in plan.get("children", [])]
+            }
+
+        return [attach_children(plan) for plan in root_plans]
+
+    # Map children properly
+#     def attach_children(plan):
+#         return {
+#             "id": plan["id"],
+#             "name": plan["name"],
+#             "child Test plan": [attach_children(child) for child in plan.get("children", [])]
+#         }
+#
+# return [attach_children(plan) for plan in root_plans]
 
 
 if __name__ == "__main__":

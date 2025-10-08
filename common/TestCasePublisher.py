@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 from common.utilities import getDBRecord
 # **********************Need to Rename is as factory**********************
 class TestCasePublisher:
-    def __init__(self, user, userstory_id):
+    def __init__(self, user, userstory_id,inputData=None):
         load_dotenv()
         self.user = user
         self.token = user.token
@@ -15,6 +15,12 @@ class TestCasePublisher:
 
         self.project_id = self._get_project_id()
         self.integration = self._get_integration_credentials()
+        if inputData is None:
+            self.payload = {}
+        else:
+            self.payload = inputData
+
+        self.testcase_ids = self.payload.get("testcases", [])
 
     def _get_project_id(self):
         query = f"SELECT project_id FROM tcg.userstory WHERE _id = {self.userstory_id}"
@@ -28,10 +34,21 @@ class TestCasePublisher:
             "tool": data['tool'].lower(),
             "url": data['url'],
             "username": data['username'],
-            "password": data['password']
+            "password": data['password'],
+            "additional_config": data['config']
         }
 
     def fetch_test_cases(self):
+        if not self.testcase_ids:
+            return []  # No testcases provided in payload
+        print("TEst Cases given",self.testcase_ids)
+            # Ensure all IDs are integers (SQL injection safe)
+        testcase_ids = [int(i) for i in self.testcase_ids if str(i).isdigit()]
+        if not testcase_ids:
+            return []
+        print("TEst Cases parsed", self.testcase_ids)
+        # Build placeholders for SQL IN clause
+        testcase_ids_str = ",".join(str(i) for i in testcase_ids)
         query = f"""
             SELECT 
     tc.id, 
@@ -49,8 +66,9 @@ FROM
 JOIN 
     tcg.userstory us ON tc.userstory_id = us._id
 WHERE 
-    tc.userstory_id = {self.userstory_id} AND tc.accepted = true
+    tc.userstory_id = {self.userstory_id} AND tc.accepted = true AND tc.id in ({testcase_ids_str})
         """
+        print("***************\n",query,"\n***************")
         return getDBRecord(query, True)
 
     def get_integration_credential(self, key: str):

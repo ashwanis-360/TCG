@@ -863,6 +863,14 @@
       "key": "",
       "default": "0",
       "extra": ""
+    },
+    {
+      "column_name": "regression",
+      "column_type": "tinyint",
+      "nullable": "YES",
+      "key": "",
+      "default": "0",
+      "extra": ""
     }
   ],
   "userstory": [
