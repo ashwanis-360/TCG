@@ -216,7 +216,7 @@ def execute_query_param(query, params=None):
             # Execute the query passed as a parameter
             print("INFO: Query to Execute = ",query, " with Parameters = ",params)
             # print(params)
-            # cursor.execute(query, params)
+            cursor.execute(query, params)
 
             # Commit the transaction
             db_connection.commit()

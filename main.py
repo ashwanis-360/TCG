@@ -164,11 +164,14 @@ async def process_data_additional_details( pr_id: int = Form(...),
         # --- Combine Text + File Content ---
         final_parts = []
         final_parts.append(user_input)
-        final_parts.append("Additional Context Provided")
+
+
         if additional_context and additional_context.strip():
+            final_parts.append("Additional Context Provided")
             final_parts.append(additional_context.strip())
-        final_parts.append("Detailed Fetched From Uploaded Documents")
+
         if files:
+            final_parts.append("Detailed Fetched From Uploaded Documents")
             for fname, fcontent in results.items():
                 final_parts.append(f"\n\n{fcontent.strip()}")
 
@@ -183,7 +186,7 @@ async def process_data_additional_details( pr_id: int = Form(...),
             	""",
             (pr_id, final_extracted_text, external_refe, "in-progress", 1, autopilot)
         )
-        print("Total tokens in Query Planner:", num_tokens_from_messages(final_extracted_text, model="gpt-3.5-turbo"))
+        # print("Total tokens in Query Planner:", num_tokens_from_messages(final_extracted_text, model="gpt-3.5-turbo"))
         background_tasks.add_task(background_task, userstory_ref, pr_id, user.token)
 
         # Return 202 response immediately

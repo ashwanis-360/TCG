@@ -248,9 +248,9 @@ def knowledge_Extrator(pr_id, user_story_ref, token, search_url):
         print("Query:", row['query'])
         print("Context:", row['context'])
         payload = {
-            "projectid": pr_id,
+            "project_id": pr_id,
             "query": row['query'],
-            "why": row['context']
+            "context": row['context']
         }
 
         # url = "http://127.0.0.1:8777/search"

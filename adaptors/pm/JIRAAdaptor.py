@@ -15,42 +15,67 @@ class JiraAdapter(PMBaseAdapter):
         base_url = self.publisher.get_integration_credential('url')
         username = self.publisher.get_integration_credential('username')
         password = self.publisher.get_integration_credential('password')
-        jql = f'project = "{query_params["project"]}" AND status = "{query_params["status"]}"'
+        # query_params = {"status": ["TO DO", "IN PROGRESS"], "project": "KAN"}
+
+        statuses = query_params["status"]
+        print("Dictionary coming", query_params)
+        print("Extracted Status", statuses)
+
+        # Ensure statuses is a list
+        if not isinstance(statuses, list):
+            statuses = [statuses]
+
+        # Build the status list string with **escaped double quotes**
+        status_list = ", ".join([f'"{s}"' for s in statuses])
+
+        # Construct JQL
+        jql = f'project = "{query_params["project"]}" AND status IN ({status_list})'
+        print("Formed JQL", jql)
+        # jql = f'project = "{query_params["project"]}" AND status = "{query_params["status"]}"'
+
+        # ✅ Use standard JIRA search endpoint (not /search/jql)
         url = f"{base_url}/rest/api/3/search/jql"
-        params = {"jql": jql}
+
+        # ✅ Request fields directly to avoid separate calls per issue
+        params = {
+            "jql": jql,
+            "fields": "id,key,summary,description,status"
+        }
+
         print(f"[JiraAdapter] Fetching issues with JQL: {jql}")
         auth = HTTPBasicAuth(username, password)
         headers = {
             "Accept": "application/json",
             "Content-Type": "application/json"
         }
-        print(url, "***", headers, "*******", params, "*******", headers, "*******", username, "*******", password)
+
+        print(f"[DEBUG] URL: {url}")
+        print(f"[DEBUG] Params: {params}")
+
+        # Send the API request
         response = requests.get(url, headers=headers, params=params, auth=auth)
         response.raise_for_status()
-        issues = response.json().get("issues", [])
-        print("Fetch external Tickets", issues)
+        data = response.json()
+
+        issues = data.get("issues", [])
         detailed_tickets = []
 
-        # Fetch details for each ticket found
+        # ✅ Convert ADF description to text if present
         for issue in issues:
-            ticket_key = issue["id"]
-            detail_url = f"{base_url}/rest/api/3/issue/{ticket_key}"
-            print(f"[JiraAdapter] Fetching details for ticket: {ticket_key}")
-            detail_response = requests.get(detail_url, headers=headers, auth=auth)
-            detail_response.raise_for_status()
-            data = detail_response.json()
-
-            description_adf = data["fields"].get("description", "")
+            fields = issue.get("fields", {})
+            description_adf = fields.get("description", "")
             plain_text = extract_text_from_adf(description_adf)
-            print("Description as text:\n", plain_text)
+
             detailed_tickets.append({
-                "id": issue["id"],
-                "key": data["key"],
-                "summary": data["fields"]["summary"],
+                "id": issue.get("id"),
+                "key": issue.get("key"),
+                "summary": fields.get("summary", ""),
                 "description": plain_text,
-                "status": data["fields"]["status"]["name"]
+                "status": fields.get("status", {}).get("name", "")
             })
 
+        print(f"[JiraAdapter] Fetched {len(detailed_tickets)} issues")
+        print("[JiraAdapter] Fetched:", detailed_tickets)
         return {"tickets": detailed_tickets}
 
     def update(self, data: dict) -> dict:

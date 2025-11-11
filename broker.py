@@ -268,7 +268,7 @@ def resume_task(user_story_ref, token):
     # model = os.getenv("MODEL")
     # base_url = os.getenv("BASE_URL")
     auth_url = os.getenv("AUTH_URL")
-    search_url = os.getenv("SEARCH_URL")
+    search_url = os.getenv("Query_URL")
     print(token)
     user_story_detail = f"""
                 SELECT autopilot, status, stage,project_id 
