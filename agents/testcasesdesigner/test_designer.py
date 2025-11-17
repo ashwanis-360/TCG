@@ -465,8 +465,10 @@ def test_designer(userstrory_ref, config):
             messages = [
                 {"role": "system",
                  "content": f"""You are an AI Test assistant developed by Saksoft to generate detailed test cases by Applying different ISTQB test designing technique.You are well versed to read/understand and Create the JSON data as per given instructions
-                     #Use the following additional QnA context for user story gather during Story refinement sessions.
-                       {context_gathered}
+                     #Use the following additional QnA context for user story gather during Story refinement sessions and 
+                       ##DO NOT Miss any important and relevant points from given context like -conditions, key validations, Attribute Validation, Functional Flows and Error Validation Conditions.
+                       ## Below is the Context:
+                       ###{context_gathered}
                     
                     """},
                 {"role": "user", "content": action_prompt}

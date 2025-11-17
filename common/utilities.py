@@ -1021,7 +1021,7 @@ def additional_context(userstrory_ref):
     user_story_detail = f"""
                 SELECT query, context, answer
                 FROM tcg.qna
-                WHERE userstory_id = {userstrory_ref}
+                WHERE userstory_id = {userstrory_ref} and knowledge_exist=1
                 """
     storydetail = getDBRecord(user_story_detail, True)
     if not storydetail:
