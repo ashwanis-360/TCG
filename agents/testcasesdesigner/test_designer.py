@@ -9,7 +9,7 @@ from pydantic import BaseModel
 from common.LLMPublisher import run_llm_pipeline
 from common.llm import get_llm_response_pydantic2
 from common.tokencouter import num_tokens_from_messages
-from common.utilities import getDBRecord, execute_query_param
+from common.utilities import getDBRecord, execute_query_param, additional_context
 import faulthandler
 
 faulthandler.enable()
@@ -96,6 +96,7 @@ def test_designer(userstrory_ref, config):
     storydetail = getDBRecord(user_story_detail, False)
     pr_id = storydetail['project_id']
     userstory = storydetail['detail']
+    context_gathered=additional_context(userstrory_ref=userstrory_ref)
 
     # userstory = f"""
     # Acceptance Criteria:
@@ -249,7 +250,7 @@ def test_designer(userstrory_ref, config):
     """""
     messages = [
         {"role": "system",
-         "content": "You are an expert QA AI Agent specialized in advanced test design developed by Saksoft.You are well versed to read/understand and Create the JSON data as per given instructions"},
+         "content": f"""You are an expert QA AI Agent specialized in advanced test design developed by Saksoft.You are well versed to read/understand and Create the JSON data as per given instructions"""},
         {"role": "user", "content": planning_prompt}
     ]
     print("Total tokens in Test planner:",
@@ -463,7 +464,11 @@ def test_designer(userstrory_ref, config):
             #
             messages = [
                 {"role": "system",
-                 "content": "You are an AI Test assistant developed by Saksoft to generate detailed test cases by Applying different ISTQB test designing technique.You are well versed to read/understand and Create the JSON data as per given instructions"},
+                 "content": f"""You are an AI Test assistant developed by Saksoft to generate detailed test cases by Applying different ISTQB test designing technique.You are well versed to read/understand and Create the JSON data as per given instructions
+                     #Use the following additional QnA context for user story gather during Story refinement sessions.
+                       {context_gathered}
+                    
+                    """},
                 {"role": "user", "content": action_prompt}
             ]
             print("Total tokens in Test Creation:",

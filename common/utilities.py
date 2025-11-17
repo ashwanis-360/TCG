@@ -1016,3 +1016,24 @@ async def extract_file_content(file: UploadFile) -> str:
         content = f"Error processing {filename}: {str(e)}"
 
     return content.strip()
+
+def additional_context(userstrory_ref):
+    user_story_detail = f"""
+                SELECT query, context, answer
+                FROM tcg.qna
+                WHERE userstory_id = {userstrory_ref}
+                """
+    storydetail = getDBRecord(user_story_detail, True)
+    if not storydetail:
+        return "### Additional QnA Context\nNo QnA records found."
+
+    structured = ["### Additional QnA Context\n"]
+
+    for i, row in enumerate(storydetail, start=1):
+        structured.append(
+            f"{i}. **Query:** {row.get('query', '')}\n"
+            f"   **Context:** {row.get('context', '')}\n"
+            f"   **Answer:** {row.get('answer', '')}\n"
+        )
+
+    return "\n".join(structured)

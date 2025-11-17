@@ -19,46 +19,6 @@ class UserStoryModel(BaseModel):
     acceptance_criteria: List[str]
 
 
-# def get_llm_response_pydantic2(apikey: str, baseurl: str, model: str, messages1: list,
-#                                response_model: Type[BaseModel]) -> BaseModel | None:
-#     client = OpenAI(
-#         base_url=baseurl,
-#         api_key=apikey,  # required, but unused
-#     )
-#     # Enable instructor patches for Groq client
-#     retries = 0
-#     max_retries = 15
-#     max_tokens = 8192
-#     temperature = 0.3
-#     while retries < max_retries:
-#         try:
-#             # Assuming `client` is already set up for Groq API call
-#             response = client.chat.completions.create(
-#                 model=model,  # Adjust based on the model you want to use
-#                 messages=messages1,
-#                 response_format={"type": "json_object"},
-#                 max_tokens=max_tokens,
-#                 temperature=temperature
-#             )
-#             action = response_model(**json.loads(response.choices[0].message.content))
-#             return action  # If the response is successful, return it
-#         except openai.BadRequestError as e:
-#             print(f"BadRequestError encountered: {e}. Attempt {retries + 1}/{max_retries}")
-#             # Log the error or inspect the response (e.g., response['error']) for further debugging
-#         except OpenAIError as e:
-#             print(f"OpenAIError encountered: {e}. Attempt {retries + 1}/{max_retries}")
-#         except Exception as e:
-#             print(f"Unexpected error: {e}. Attempt {retries + 1}/{max_retries}")
-#
-#         retries += 1
-#         if retries < max_retries:
-#             print(f"Retrying in {1} seconds...")
-#             time.sleep(1)  # Wait for the specified delay before retrying
-#         else:
-#             print("Max retries reached. No valid response obtained.")
-#     return None
-
-
 def building_story(config, userstrory_ref):
     ## Reading Questions And Answer and Storing into QNA
     user_story_detail = f"""SELECT project_id,detail FROM tcg.userstory where _id={userstrory_ref}"""
