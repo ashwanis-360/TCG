@@ -268,7 +268,7 @@ def download_excel(pr_id: str, user_story_id: str, user: TokenData = Depends(get
         testcases = f"""SELECT id as testcase_id,external_ref as alm_id,project_id as Project_Name,userstory_id as user_story_ID,COALESCE(
         (SELECT detail FROM tcg.requirments WHERE id = tc.requirment_id and userstory_id={user_story_id} ), 
         (SELECT description FROM tcg.planning_item WHERE _id = tc.requirment_id and userstory_id={user_story_id})
-    ) AS requirement_detail, summary as scenario,test_steps,test_data,expected_result,accepted FROM tcg.test_cases tc
+    ) AS requirement_detail, summary as scenario,test_steps,test_data,expected_result,accepted,priority FROM tcg.test_cases tc
                           WHERE project_id={pr_id} AND userstory_id={user_story_id}"""
         # Query the MySQL database for matching records
         list_testcases = getDBRecord(testcases, True)
