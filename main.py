@@ -20,6 +20,7 @@ from pydantic import BaseModel
 import PyPDF2
 from adaptors.pm.JIRAAdaptor import JiraAdapter
 from adaptors.pm.ado import AzureDevOpsAdapter
+from adaptors.tm.adot import AzureDevOpsPublisher
 from adaptors.tm.kiwi import KiwiPublisher
 from adaptors.tm.testiny import TestinyPublisher
 from agents.querymaster.Query_Master import knowledge_Creater
@@ -434,7 +435,8 @@ async def publish_testcase(input_data: dict,
     print("Tool from API: ", tool)
     tool_map = {
         "testiny": TestinyPublisher,
-        "kiwi": KiwiPublisher
+        "kiwi": KiwiPublisher,
+        "ado":AzureDevOpsPublisher
     }
 
     if tool not in tool_map:
@@ -1158,14 +1160,13 @@ def fetch_versions(request_id: int,
         content={"product": success},
         status_code=200)
 
-
-@app.get("/fetch_versions/{request_id}/{product_id}")
-def fetch_versions(request_id: int, product_id: int, user: TokenData = Depends(get_current_user)):
+@app.get("/fetch_products/{request_id}")
+def fetch_versions(request_id: int,
+                   user: TokenData = Depends(get_current_user)):
     """
     Query parameters:
       - product_id (int) : optional. If provided, returns versions for that product only.
     """
-
     publisher = TestCasePublisher(user, request_id)
     tool = publisher.integration['tool']
     print("Tool from API: ", tool)
@@ -1179,9 +1180,63 @@ def fetch_versions(request_id: int, product_id: int, user: TokenData = Depends(g
         return JSONResponse(content={"message": f"Unsupported tool: {tool}"}, status_code=400)
 
     tool_publisher = tool_map[tool](publisher)
-    success = tool_publisher.fetchVersions(product_id)
+    success = tool_publisher.fetchProduct()
+
     return JSONResponse(
-        content={"versions": success},
+        content={"product": success},
+        status_code=200)
+
+
+@app.get("/fetch_testplans/{request_id}/")
+def fetch_testplans_ado(request_id: int, user: TokenData = Depends(get_current_user)):
+    """
+    Query parameters:
+      - product_id (int) : optional. If provided, returns versions for that product only.
+    """
+
+    publisher = TestCasePublisher(user, request_id)
+    tool = publisher.integration['tool']
+    print("Tool from API: ", tool)
+    tool_map = {
+        "testiny": TestinyPublisher,
+        "kiwi": KiwiPublisher,
+        "ado":AzureDevOpsPublisher
+    }
+
+    if tool not in tool_map:
+        print("Unsupported tool: ")
+        return JSONResponse(content={"message": f"Unsupported tool: {tool}"}, status_code=400)
+
+    tool_publisher = tool_map[tool](publisher)
+    success = tool_publisher.fetch_test_plans()
+    return JSONResponse(
+        content={"plans": success},
+        status_code=200)
+
+@app.get("/fetch_testsuite/{request_id}/{plan_id}")
+def fetch_testsuites_ado(request_id: int, plan_id:str,user: TokenData = Depends(get_current_user)):
+    """
+    Query parameters:
+      - product_id (int) : optional. If provided, returns versions for that product only.
+    """
+
+    publisher = TestCasePublisher(user, request_id)
+    tool = publisher.integration['tool']
+    print("Tool from API: ", tool)
+    tool_map = {
+        "testiny": TestinyPublisher,
+        "kiwi": KiwiPublisher,
+        "ado":AzureDevOpsPublisher
+    }
+
+    if tool not in tool_map:
+        print("Unsupported tool: ")
+        return JSONResponse(content={"message": f"Unsupported tool: {tool}"}, status_code=400)
+
+    tool_publisher = tool_map[tool](publisher)
+    success = tool_publisher.fetch_test_suites(plan_id)
+    return JSONResponse(
+        content={"suite": success},
         status_code=200)
 
 
