@@ -19,6 +19,7 @@ from flask import jsonify
 from pydantic import BaseModel
 import PyPDF2
 from adaptors.pm.JIRAAdaptor import JiraAdapter
+from adaptors.pm.ado import AzureDevOpsAdapter
 from adaptors.tm.kiwi import KiwiPublisher
 from adaptors.tm.testiny import TestinyPublisher
 from agents.querymaster.Query_Master import knowledge_Creater
@@ -944,6 +945,7 @@ def get_tickets(project_id: int, user: TokenData = Depends(get_current_user)):
     config = publisher.integration['additional_config']
     tool_map = {
         "jira": JiraAdapter,
+        "ado":AzureDevOpsAdapter
     }
 
     if tool not in tool_map:
