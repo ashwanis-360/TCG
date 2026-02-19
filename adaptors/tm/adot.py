@@ -1,5 +1,7 @@
 import base64
 import requests
+from aiohttp import Payload
+
 from adaptors.tm.tool_publishers import BaseToolPublisher
 import json
 import html
@@ -61,7 +63,9 @@ class AzureDevOpsPublisher(BaseToolPublisher):
                 "value": steps_xml
             }
         ]
-
+        print("========== ADO PAYLOAD ==========")
+        print(json.dumps(payload, indent=4))
+        print("=================================")
         return payload
 
     def create_test_case(self, test_case):
@@ -90,6 +94,7 @@ class AzureDevOpsPublisher(BaseToolPublisher):
         #     {"op": "add", "path": "/fields/Microsoft.VSTS.TCM.Steps", "value": steps_xml}
         # ]
         payload= self.build_ado_payload(test_case, steps_xml)
+        print("Payload to Generate the Test Case",Payload)
 
         response = requests.post(url, headers=headers, json=payload, auth=auth)
 
@@ -117,14 +122,17 @@ class AzureDevOpsPublisher(BaseToolPublisher):
 
     def _format_steps(self, test_case):
         raw_steps = test_case.get("test_steps")
-
+        print("Raw Step",raw_steps)
         if not raw_steps:
             return '<steps id="0" last="0"></steps>'
 
+        if isinstance(raw_steps, bytes):
+            raw_steps = raw_steps.decode("utf-8")
         # If steps are stored as JSON string in DB → parse them
         if isinstance(raw_steps, str):
             try:
                 steps = json.loads(raw_steps)
+                print("Json Formate Steps",steps)
             except json.JSONDecodeError:
                 # If not JSON, treat whole content as single step
                 steps = [{
@@ -140,17 +148,34 @@ class AzureDevOpsPublisher(BaseToolPublisher):
         xml = f'<steps id="0" last="{len(steps)}">'
 
         for index, step in enumerate(steps, start=1):
-            action = html.escape(str(step.get("test_steps", "")))
-            expected = html.escape(str(step.get("expected_result", "")))
+            if isinstance(step, str):
+                action = html.escape(step)
+                if index == len(steps):
+                    expected_text = test_case.get("expected_result", "")
+                else:
+                    expected_text = ""
 
-            xml += f"""
-            <step id="{index}" type="ActionStep">
-                <parameterizedString isformatted="true">{action}</parameterizedString>
-                <parameterizedString isformatted="true">{expected}</parameterizedString>
-            </step>
-            """
+                expected = html.escape(str(expected_text))
+                # expected = html.escape(test_case.get("expected_result", ""))
+            else:
+                action = html.escape(str(step.get("test_steps", "")))
+                if index == len(steps):
+                    expected_text = html.escape(str(step.get("expected_result", "")))
+                else:
+                    expected_text = ""
+
+                expected = html.escape(str(expected_text))
+
+
+            xml += (
+            f'<step id="{index}" type="ActionStep">'
+        f'<parameterizedString isformatted="true">{action}</parameterizedString>'
+        f'<parameterizedString isformatted="true">{expected}</parameterizedString>'
+        f'</step>'
+            )
 
         xml += "</steps>"
+        print("Generated XML",xml)
         return xml
 
     def link_test_case_to_user_story(self, user_story_id, test_case_id):

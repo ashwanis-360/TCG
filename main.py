@@ -1294,7 +1294,8 @@ def fetch_configuration(request_id: int, user: TokenData = Depends(get_current_u
 
     tool_map = {
         "testiny": TestinyPublisher,
-        "kiwi": KiwiPublisher
+        "kiwi": KiwiPublisher,
+        "ado":AzureDevOpsPublisher
     }
 
     if tool not in tool_map:
@@ -1337,6 +1338,95 @@ def fetch_configuration(request_id: int, user: TokenData = Depends(get_current_u
         configuration.append(product_entry)
 
     return JSONResponse(content={"Configuration": make_json_safe(configuration)}, status_code=200)
+
+@app.get("/fetch_configuration_ado/{request_id}")
+def fetch_configuration_ado(request_id: int, user: TokenData = Depends(get_current_user)):
+    """
+        Returns hierarchical config:
+        Product -> Versions -> Test Plans -> Child Test Plans (recursive)
+        """
+    publisher = TestCasePublisher(user, request_id)
+    tool = publisher.integration['tool']
+    Additonal_Config = publisher.integration['additional_config']
+    print("Tool from API:", tool)
+
+    tool_map = {
+        "testiny": TestinyPublisher,
+        "kiwi": KiwiPublisher,
+        "ado":AzureDevOpsPublisher
+    }
+
+    if tool not in tool_map:
+        return JSONResponse(
+            content={"message": f"Unsupported tool: {tool}"},
+            status_code=400
+        )
+
+    tool_publisher = tool_map[tool](publisher)
+
+    # Step 1: Fetch all test plans
+    # plans = tool_publisher.fetch_test_plans()
+
+    configuration = []
+    plans_response = tool_publisher.fetch_test_plans()
+    plans = plans_response.get("plans", [])
+
+    for plan in plans:
+        plan_entry = {
+            "id": plan["id"],
+            "name": plan["name"],
+            "test_suites": []
+        }
+
+        # Step 2: Fetch suites for each plan
+        suites = tool_publisher.fetch_test_suites(plan["id"])
+
+        # Step 3: Build recursive suite hierarchy
+        plan_entry["test_suites"] = build_ado_suite_hierarchy(suites)
+
+        configuration.append(plan_entry)
+
+    return JSONResponse(
+        content={"Configuration": configuration},
+        status_code=200
+    )
+def build_ado_suite_hierarchy(suites):
+    """
+    Build recursive hierarchy of test suites using parentSuite -> children relationship
+    """
+
+    # Convert list to dictionary for fast lookup
+    suite_dict = {
+        str(suite["id"]): {**suite, "children": []}
+        for suite in suites
+    }
+
+    root_suites = []
+
+    for suite in suites:
+        suite_id = str(suite["id"])
+        parent_suite = suite.get("parentSuite")
+
+        if parent_suite and "id" in parent_suite:
+            parent_id = str(parent_suite["id"])
+            if parent_id in suite_dict:
+                suite_dict[parent_id]["children"].append(suite_dict[suite_id])
+        else:
+            # No parent → root level suite
+            root_suites.append(suite_dict[suite_id])
+
+    def attach_children(suite):
+        return {
+            "id": suite["id"],
+            "name": suite["name"],
+            "suite_type": suite.get("suiteType"),
+            "children": [
+                attach_children(child)
+                for child in suite.get("children", [])
+            ]
+        }
+
+    return [attach_children(suite) for suite in root_suites]
 
 def build_testplan_hierarchy(testplans):
         """
