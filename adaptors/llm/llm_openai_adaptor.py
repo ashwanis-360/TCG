@@ -40,7 +40,7 @@ class OpenAIAdapter(BaseLLMAdapter):
                     model=self.config.llm_model,  # Adjust based on the model you want to use
                     messages=messages,
                     response_format={"type": "json_object"},
-                    temperature=0.4
+                    temperature=1
                 )
                 print(response.choices[0].message.content)
                 good_json_string = repair_json(response.choices[0].message.content)
