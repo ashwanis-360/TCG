@@ -7,7 +7,9 @@ from flask import Flask, render_template, jsonify
 import json
 
 from agents.requirmentanalyser.Feature_Analyser import requirment_spliter
-from agents.querymaster.Query_Master import insert_query, gapAnalyser, knowledge_Extrator, assumption_maker
+from agents.querymaster.Query_Master import insert_query, knowledge_Extrator
+from agents.querymaster.Query_Master_V2 import gapAnalyser,assumption_maker
+
 from agents.brdanalyser.brdtester import BRDAutomationPipeline
 from common.LLMPublisher import fetch_config_from_api
 from common.Notification import MailUtility, generate_email_template, generate_email_template_error
