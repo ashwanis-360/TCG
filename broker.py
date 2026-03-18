@@ -15,7 +15,7 @@ from common.LLMPublisher import fetch_config_from_api
 from common.Notification import MailUtility, generate_email_template, generate_email_template_error
 
 from agents.storybuilder.story_builder import building_story
-from agents.testcasesdesigner.test_designer_v2 import test_designer
+from agents.testcasesdesigner.test_designer import test_designer
 from common.tokencouter import num_tokens_from_messages
 from common.utilities import getDBRecord, execute_query_param
 
@@ -432,7 +432,7 @@ def resume_task(user_story_ref, token):
     #     updatestoryStatus(user_story_ref, "Error", e)
 
 
-def babackground_task(request, user_story_ref, token):
+def babackground_task(request, user_story_ref, token,pr_id):
     load_dotenv()
     is_knowledge = os.getenv("USE_LOCAL_KNOWLEDGE_BASE")
     model = os.getenv("MODEL")
@@ -441,7 +441,7 @@ def babackground_task(request, user_story_ref, token):
     search_url = os.getenv("SEARCH_URL")
     print(token)
 
-    api_url = auth_url + "/api/integrations/project/2/LLM"
+    api_url = auth_url + "/api/integrations/project/"+pr_id+"/LLM"
     bearer_token = token
 
     headers = {

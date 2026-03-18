@@ -13,7 +13,7 @@ from common.utilities import execute_query_param
 
 
 class UserStoryModel(BaseModel):
-    prerequesites: List[str]
+    prerequisites: List[str]
     summary: str
     actions: List[str]
     test_data: List[str]
@@ -134,7 +134,7 @@ class BRDAutomationPipeline:
                     Where UserStoryModel is as below:
                 ```python
                 class UserStoryModel(BaseModel):
-                    prerequesites: List[str]       # Any conditions or setup required before implementing the story
+                    prerequisites: List[str]       # Any conditions or setup required before implementing the story
                     summary: str                   # One-line goal of the user story
                     actions: List[str]             # Steps user will take or system will perform
                     test_data: List[str]           # Sample input values or data required for validation
@@ -203,7 +203,7 @@ class BRDAutomationPipeline:
                     VALUES (%s, %s, %s, %s, %s, %s)
                 """
                 execute_query_param(insert_user_story_query, (
-                    json.dumps(story["prerequesites"]),
+                    json.dumps(story["prerequisites"]),
                     story["summary"],
                     json.dumps(story["actions"]),
                     json.dumps(story["test_data"]),
@@ -235,80 +235,3 @@ class BRDAutomationPipeline:
             "Implementation Details": self.implementation_details,
             "User Stories": self.user_stories
         }
-
-
-# Example usage
-# if __name__ == "__main__":
-#     transcript_input = """
-#     Duration: 30 Minutes
-# Attendees:
-# Rajiv (Lead Product Owner)
-# Meera (Business Strategist)
-# Ajay (Infra Architect)
-# Nina (Product Owner - OSS)
-# Saket (Tech Lead - Cloud & AI)
-# Farah (CX Lead)
-# [00:00] Rajiv:
-# Thanks, everyone. Let’s jump in. The idea is to brainstorm a next-gen NMS platform – something truly AI-native, not just an upgraded version of legacy OSS.
-# [00:02] Meera:
-# Right. And we’re seeing serious operator pain points – managing hybrid networks, multi-vendor complexity, lack of visibility, and poor fault isolation. This could solve real business challenges.
-# [00:04] Nina:
-# Exactly. And I think the shift has to be from reactive fault management to predictive assurance. AIOps needs to be at the core, not an add-on.
-# [00:06] Saket:
-# We can integrate anomaly detection models, LLM-driven root cause analysis, and even closed-loop remediation. Think of it like: issues don’t just get detected—they get understood and resolved in real-time.
-# [00:08] Rajiv:
-# Let’s list down core capabilities. I’m noting:
-# Predictive Fault Management
-# Auto-Topology Discovery (for hybrid networks)
-# AI-driven RCA and healing
-# Unified View (Fiber, 5G, Satellite, etc.)
-# Self-service analytics for NOC teams
-# [00:11] Farah:
-# Don’t forget experience monitoring. If this tool only serves network engineers, it’s a half-product. We should have a CX dashboard that correlates outages to customer churn risk.
-# [00:13] Ajay:
-# Infra-wise, we need to assume cloud-native from day zero. Kubernetes, microservices, real-time streaming with Kafka, and possibly a data lake for historical analysis.
-# [00:15] Saket:
-# Agreed. And for AIOps, we should bake in:
-# Real-time telemetry ingestion
-# ML pipelines (probably using Ray or Spark)
-# LLM agents for RCA and knowledge retrieval from past incidents
-# [00:18] Nina:
-# Quick thought—can we modularize the system? Like, telcos can plug in just the parts they need? Fault Mgmt, Inventory, Performance, etc.
-# [00:19] Rajiv:
-# Yes, productization is key. We build the core intelligence platform, and expose capabilities via APIs and modular UIs. SaaS-style delivery model is what most Tier-2/3 telcos will prefer.
-# [00:21] Meera:
-# On the business side—how do we pitch this?
-# Reduced OPEX by 30–40% via automation
-# 50% faster MTTR
-# Avoid SLA penalties
-# Better NOC productivity
-# Improved CX = lower churn
-# [00:23] Farah:
-# And sustainability! Energy-efficient ops, fewer truck rolls. Telcos are under pressure to show green impact.
-# [00:24] Ajay:
-# What about security? Multi-tenant SaaS will need strong tenant isolation. Role-based access, zero trust model, and encrypted event pipelines.
-# [00:26] Rajiv:
-# Great. Let’s assign action items:
-# Saket: AI/ML architecture draft
-# Ajay: Infra & deployment model
-# Nina: Feature backlog (MVP & Phase 2)
-# Meera: Business case and go-to-market outline
-# [00:28] Meera:
-# We should also validate with 2-3 existing telco clients. Quick interviews to fine-tune messaging.
-# [00:29] Rajiv:
-# Let’s plan a follow-up in a week. This is shaping up to be more than just a product—it’s a platform play.
-# [00:30] [Meeting Ends]
-#     """
-#
-#     pipeline = BRDAutomationPipeline(transcript=transcript_input)
-#     pipeline.run_pipeline()
-#     # outputs = pipeline.get_outputs()
-#     #
-#     # print("\n--- BRD ---")
-#     # print(json.dumps(outputs["BRD"], indent=2))
-#     #
-#     # print("\n--- Implementation Details ---")
-#     # print(json.dumps(outputs["Implementation Details"], indent=2))
-#     #
-#     # print("\n--- User Stories ---")
-#     # print(json.dumps(outputs["User Stories"], indent=2))

@@ -389,11 +389,8 @@ requirement = "{task}"
 plan = "{activity['activity']}"
 
 techniques must be a single string.
-
 testcases must be a list of objects.
-
 Each testcase MUST contain:
-
 - testcase_summary (string)
 - test_steps (array of strings)
 - expected_result (string)
@@ -403,7 +400,6 @@ Each testcase MUST contain:
 - tags (array of strings)
 
 DO NOT return:
-
 - testScenario
 - scenario_metadata
 - metadata

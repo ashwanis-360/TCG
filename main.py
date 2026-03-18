@@ -965,6 +965,7 @@ def get_tickets(project_id: int, user: TokenData = Depends(get_current_user)):
 
 @app.post("/ba_resource/")
 async def upload_files(background_tasks: BackgroundTasks, user: TokenData = Depends(get_current_user),
+                       pr_id:Optional[str] = Form(None),
                        text: Optional[str] = Form(None),
                        files: Optional[List[UploadFile]] = File(None)):
     username = user.username
@@ -1123,7 +1124,7 @@ async def upload_files(background_tasks: BackgroundTasks, user: TokenData = Depe
             user_story_input, "inprogress"
         ))
 
-        background_tasks.add_task(babackground_task, user_story_input, id, user.token)
+        background_tasks.add_task(babackground_task, user_story_input, id, user.token,pr_id)
 
         # Return 202 response immediately
         return JSONResponse(

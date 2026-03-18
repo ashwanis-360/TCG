@@ -11,6 +11,7 @@ from pydantic import BaseModel
 from adaptors.llm.llm_base_adaptor import BaseLLMAdapter
 from adaptors.llm.llm_config import LLMConfig
 from adaptors.llm.llm_openai_adaptor import OpenAIAdapter
+from adaptors.llm.universal import GeminiAdapter
 
 
 class LLMAdapterFactory:
@@ -22,8 +23,8 @@ class LLMAdapterFactory:
 
         if tool in ["openai", "groq", "local"]:
             return OpenAIAdapter(config)
-        # elif tool == "gemini":
-        #     return GeminiAdapter(config)
+        elif tool == "gemini":
+            return GeminiAdapter(config)
         # elif tool == "local":
         #     return LocalLLMAdapter(config)
         else:
