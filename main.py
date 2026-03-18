@@ -939,6 +939,31 @@ def get_idea_details(idea_id: int):
         }
         return result_json
 
+@app.get("/get_processed_idea/{pr_id}")
+def get_idea_details(pr_id: int):
+    # Step 1: Get initial idea
+    idea_query = """
+        SELECT id, input,status
+        FROM intial_idea
+        WHERE project_id = %s
+    """
+    ideas = fetch_all(idea_query, (pr_id,))
+    if not ideas:
+        raise HTTPException(status_code=404, detail="Idea not found")
+    idea_list = []
+    for row in ideas:
+        idea_list.append({
+            "id": row["id"],
+            "input": row["input"],
+            "status": row["status"]
+        })
+
+    # Step 3: Return response
+    return {
+        "ideas": idea_list
+    }
+
+
 
 @app.get("/ticket_list/{project_id}")
 def get_tickets(project_id: int, user: TokenData = Depends(get_current_user)):
@@ -1117,11 +1142,11 @@ async def upload_files(background_tasks: BackgroundTasks, user: TokenData = Depe
         user_story_input = final_extracted_text
         print("\nExtracted content************\n", user_story_input, "\nExtracted content************\n")
         insert_idea_query = """
-                                INSERT INTO tcg.intial_idea (input,status)
-                                VALUES (%s,%s)
+                                INSERT INTO tcg.intial_idea (input,status,project_id)
+                                VALUES (%s,%s,%s)
                             """
         id = execute_query_param(insert_idea_query, (
-            user_story_input, "inprogress"
+            user_story_input, "inprogress",pr_id
         ))
 
         background_tasks.add_task(babackground_task, user_story_input, id, user.token,pr_id)
