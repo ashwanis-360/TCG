@@ -1056,6 +1056,25 @@ Requirement:
 
             scenario_prompt = f"""
 Generate Maximum of 1-3 HIGH VALUE testcases only covering the given scenario.
+📦 ATTRIBUTE DEFINITIONS
+            **priority** Only P1, P2, P3 possible values could be based below definations:
+             - P1 (High): Core business flow, critical, compliance-driven, high failure risk
+             - P2 (Medium): Frequently used but not business-blocking
+             - P3 (Low): Informational, cosmetic, or rarely used features
+
+            **to_be_automated**:
+            Set to true if: 
+             - The test is stable, repeatable, and frequently executed (e.g., login, API validation, calculation rules)
+             - It has deterministic outcomes and adds value to regression suites
+            Else, set to false (e.g., visual layout, one-time UX checks)
+
+            🔐 Constraints
+                - Do not include markdown, headers, or comments
+                - Return only JSON output
+                - Follow Pydantic model constraints exactly
+                - Ensure each test case is unique, atomic, and covers a distinct rule/path/condition
+                - Think systematically and logically before generating
+                
 #Scenario To cover: 
 {activity['activity']}
 
@@ -1153,16 +1172,25 @@ The Purpose of these Test Cases is to test below User Story:
                 
 """
 
-            raw = run_llm_pipeline(config, [
-                {"role": "system", "content": context},
+            # raw = run_llm_pipeline(config, [
+            #     {"role": "system", "content": ""},
+            #     {"role": "user", "content": scenario_prompt}
+            # ], Requirement)
+
+            messages = [
+                {"role": "system",
+                 "content": f"""You are an Experienced QA who designed the Detailed Test case based on the Given Scenario and Test plan
+        
+                                    """},
                 {"role": "user", "content": scenario_prompt}
-            ], dict)
+    ]
 
-            normalized = normalize_llm_output(raw, activity['activity'], "Functional")
-            normalized = repair_testcases(normalized)
-            print("Normalized and Repaired Test Cases",normalized)
-
-            action = Requirement(**normalized)
+            action = run_llm_pipeline(config, messages, Requirement)
+            # normalized = normalize_llm_output(raw, activity['activity'], "Functional")
+            # normalized = repair_testcases(normalized)
+            # print("Normalized and Repaired Test Cases",normalized)
+            #
+            # action = Requirement(**normalized)
             print("Formated Test Cases", action)
             for tc in action.testcases:
                 all_testcases.append(tc)
