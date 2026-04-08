@@ -59,10 +59,10 @@ class BRDAutomationPipeline:
         self.config = config
 
     def extract_relevant_content(self):
-        prompt = f"Extract relevant content from the following meeting transcript:\n{self.transcript}\n"
+        prompt = f"Analyze the given data from Business and technical point of view and Create anticipated user journey,exiting systems details (if available), Technical Details, Business Rules, Integrating Systems(Up stream or DownStream Systems) \n{self.transcript}\n"
         messages = [
             {"role": "system",
-             "content": "You are good Listener on the call and efficiently extract all the relevant discussion points from transcript to define the further action items from these discussion"},
+             "content": "You are Senior Business Analyst of Domain in Context and Can Define and Extract the Information's from Given Raw data to build the Software Systems"},
             {"role": "user", "content": prompt}
         ]
         self.relevant_content = run_llm_pipeline_text(self.config, messages)
@@ -70,7 +70,7 @@ class BRDAutomationPipeline:
         print("[✓] Relevant content extracted.",self.relevant_content)
 
     def generate_brd(self):
-        prompt = (f"""Based on the relevant content: {self.relevant_content}, generate a Business Requirement Document (BRD).You response should strictly follow the below JSON Structure:"
+        prompt = (f"""Based on the content: {self.relevant_content}, generate a Business Requirement Document (BRD).You response should strictly follow the below JSON Structure:"
                   {{
     "executive_summary": "Executive Summary of for whole software concepts",
     "business_objectives": [
@@ -78,17 +78,19 @@ class BRDAutomationPipeline:
         "Better customer experience", "Sustainability goals",.. etc
     ],
     "core_features": [
-        "Core Feature to be build to achieved the Desired business objective", ... etc
+        "Core Feature to get Develop from the Product Owner point of view", ... etc
     ],
     "non_functional_requirements": [
         "Non Functional Aspect of this software for example Infra, Scalability, Usability, Security etc...",
     ]
 }}
+
+Also, Make sure the Sequence of Feature should be aligned as per Give User Journey and Related Technical Detailing along with the Integrating Systems
                   """
                   )
         messages = [
             {"role": "system",
-             "content": "You are an Efficient AI Assistance as Business analyst which can create detailed Business Requirement Document (BRD) "},
+             "content": "You are Senior Business analyst who can create detailed Business Requirement Document (BRD) "},
             {"role": "user", "content": prompt}
         ]
         print("Total tokens in BA Role Proposal Extractor:",
@@ -111,11 +113,15 @@ class BRDAutomationPipeline:
                class approach(BaseModel):
                     approach:List[str]
             ```
-            Do not include the open and closing statements or explanation conversation in you response"""
+            Do not include the open and closing statements or explanation conversation in you response
+            To make is accurate Please refer Below:
+            {self.relevant_content}
+
+"""
 
             messages = [
                 {"role": "system",
-                 "content": "You are an Efficient AI Assistance as Business analyst which can create detailed Business Requirement Document (BRD) "},
+                 "content": "You are A Senior Technical Architect who can plan the Details Design and Implementation Approach for a give Feature with Details"},
                 {"role": "user", "content": prompt}
             ]
             print("Total tokens in BA Role Implementation Approach:",
@@ -126,6 +132,8 @@ class BRDAutomationPipeline:
             print("[✓] Implementation approach generated for features.", self.implementation_details)
 
             prompt = f"""Generate detailed user stories for this feature {feature} using following Implementation approach: {self.implementation_details}.Generate a user story in strictly Json formate according to that follows this Pydantic model:
+                User Story should be relatable and Accurate as per given Context and it SHOULD NOT be Generic :{self.relevant_content}
+                The User Story should be very much explainable for a Product Owner or Business User and not too much technical but should be the source of truth for the Developed and Testing Team
                 ```python
                 
                 class AlluserStories(BaseModel):
