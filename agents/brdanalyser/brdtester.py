@@ -239,6 +239,7 @@ Also, Make sure the Sequence of Feature should be aligned as per Give User Journ
 
     def get_outputs(self) -> Dict[str, Any]:
         return {
+            "understanding":self.relevant_content,
             "BRD": self.brd,
             "Implementation Details": self.implementation_details,
             "User Stories": self.user_stories
