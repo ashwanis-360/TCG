@@ -926,7 +926,7 @@ def get_idea_details(idea_id: int):
         result_json = {
             "id": idea["id"],
             "executive_summary": idea["executive_summary"],
-            "business_objectives": json.loads(idea["business_objectives"] or "[]"),
+            "business_objectives": idea["business_objectives"] or "",
             "feature_breackdown": feature_breackdown
         }
 

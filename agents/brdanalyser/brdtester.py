@@ -187,7 +187,7 @@ Also, Make sure the Sequence of Feature should be aligned as per Give User Journ
         """
         execute_query_param(update_idea_query, (
             data["executive_summary"],
-            json.dumps(data["business_objectives"]),
+            self.relevant_content,
             self.id
         ))
 
