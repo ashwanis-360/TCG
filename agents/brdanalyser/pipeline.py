@@ -21,7 +21,7 @@ from typing import List, Optional
 
 from pydantic import BaseModel
 
-import prompts
+from agents.brdanalyser import prompts
 from common.LLMPublisher import run_llm_pipeline, run_llm_pipeline_text
 from common.utilities import execute_query_param
 

@@ -451,7 +451,7 @@ async def babackground_task(request, user_story_ref, token,pr_id):
     # 1) Fetch the config JSON from your API
     config_json = fetch_config_from_api(api_url, headers=headers)
     try:
-        pipeline = BRDAutomationPipelines(config=config_json, transcript=request, idea_id=user_story_ref)
+        pipeline = BRDAutomationPipelines(config=config_json, transcript=request, idea_id=user_story_ref,auto_proceed=True)
         await pipeline.run()
     except Exception as e:
         print("Something went wrong", e)
