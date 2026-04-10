@@ -6,6 +6,7 @@ from dotenv import load_dotenv
 from flask import Flask, render_template, jsonify
 import json
 
+from agents.brdanalyser.pipeline import BRDAutomationPipelines
 from agents.requirmentanalyser.Feature_Analyser import requirment_spliter
 from agents.querymaster.Query_Master import insert_query, knowledge_Extrator
 from agents.querymaster.Query_Master_V2 import gapAnalyser,assumption_maker
@@ -432,7 +433,7 @@ def resume_task(user_story_ref, token):
     #     updatestoryStatus(user_story_ref, "Error", e)
 
 
-def babackground_task(request, user_story_ref, token,pr_id):
+async def babackground_task(request, user_story_ref, token,pr_id):
     load_dotenv()
     is_knowledge = os.getenv("USE_LOCAL_KNOWLEDGE_BASE")
     model = os.getenv("MODEL")
@@ -450,8 +451,8 @@ def babackground_task(request, user_story_ref, token,pr_id):
     # 1) Fetch the config JSON from your API
     config_json = fetch_config_from_api(api_url, headers=headers)
     try:
-        pipeline = BRDAutomationPipeline(config=config_json, transcript=request, id=user_story_ref)
-        pipeline.run_pipeline()
+        pipeline = BRDAutomationPipelines(config=config_json, transcript=request, idea_id=user_story_ref)
+        await pipeline.run()
     except Exception as e:
         print("Something went wrong", e)
 
