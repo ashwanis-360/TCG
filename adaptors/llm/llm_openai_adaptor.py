@@ -11,7 +11,6 @@ from pydantic import BaseModel
 from adaptors.llm.llm_base_adaptor import BaseLLMAdapter
 from json_repair import repair_json
 
-
 class ErrorResponseModel(BaseModel):
     llm_response_status: str
     error_type: str
@@ -24,6 +23,9 @@ class OpenAIAdapter(BaseLLMAdapter):
 
     def runpydetic(self, messages: List[Dict], response_model: Type[BaseModel]) -> BaseModel:
         print(f"[OpenAIAdapter] Calling model: {self.config.llm_model} on {self.config.base_url}")
+
+
+
 
         client = OpenAI(
             api_key=self.config.api_key,
@@ -73,6 +75,8 @@ class OpenAIAdapter(BaseLLMAdapter):
 
     def run(self, messages: List[Dict]) -> str:
         print(f"[OpenAIAdapter] Calling model: {self.config.llm_model} on {self.config.base_url}")
+
+
 
         client = OpenAI(
             api_key=self.config.api_key,
