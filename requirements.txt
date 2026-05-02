@@ -16,3 +16,4 @@ extract_msg
 json-repair
 tiktoken
 aiohttp
+sentence-transformers
