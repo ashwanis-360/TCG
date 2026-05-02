@@ -1,8 +1,6 @@
 import json
-
 import requests
 from requests.auth import HTTPBasicAuth
-from typing import Dict, Any
 
 from adaptors.pm.pm_base_adaptor import PMBaseAdapter
 from common.utilities import extract_text_from_adf

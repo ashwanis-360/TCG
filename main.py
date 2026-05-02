@@ -1,14 +1,9 @@
-import io
 import json
 import os
-from base64 import b64encode
 from typing import List, Optional
 import datetime
 from xmlrpc.client import DateTime as XMLRPCDateTime
-import docx
 import pandas as pd
-import requests
-from docx.oxml.ns import qn
 from fastapi import FastAPI, BackgroundTasks, Depends, HTTPException, Form, UploadFile, File
 from fastapi.responses import JSONResponse
 from fastapi.responses import StreamingResponse
@@ -16,8 +11,6 @@ import asyncio
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 from flask import jsonify
-from pydantic import BaseModel
-import PyPDF2
 from adaptors.pm.JIRAAdaptor import JiraAdapter
 from adaptors.pm.ado import AzureDevOpsAdapter
 from adaptors.tm.adot import AzureDevOpsPublisher
@@ -27,15 +20,10 @@ from agents.querymaster.Query_Master import knowledge_Creater
 from common.TestCasePublisher import TestCasePublisher
 from broker import background_task, babackground_task, resume_task
 from common.pm_factory import PMFactory
-from common.tokencouter import num_tokens_from_messages
 from common.utilities import TokenData, get_current_user, create_bold_paragraph, create_ordered_list, \
     extract_file_content
-import extract_msg
 from common.utilities import execute_query_param, getDBRecord, execute_query_with_values, safe_json_load, \
     fetch_all, prepare_excel2
-import email
-from email import policy
-from email.parser import BytesParser
 
 app = FastAPI()
 task_lock = asyncio.Lock()

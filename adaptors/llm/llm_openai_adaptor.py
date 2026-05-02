@@ -1,13 +1,9 @@
 import json
 import time
-from abc import ABC, abstractmethod
 from typing import List, Dict, Type, Any
-
 import openai
-import requests
 from openai import OpenAI, OpenAIError
 from pydantic import BaseModel
-
 from adaptors.llm.llm_base_adaptor import BaseLLMAdapter
 from json_repair import repair_json
 

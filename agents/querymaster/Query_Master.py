@@ -1,14 +1,13 @@
 import json
-import time
+
 from typing import Type, List
 
-import openai
+
 import requests
-from openai import OpenAI, OpenAIError, BaseModel
+from openai import BaseModel
 
 from common.LLMPublisher import run_llm_pipeline
-from common.llm import get_llm_response_pydantic2
-from common.tokencouter import count_tokens, num_tokens_from_messages
+from common.tokencouter import num_tokens_from_messages
 from common.utilities import getDBRecord, execute_query_param
 
 
@@ -272,6 +271,26 @@ def knowledge_Extrator(pr_id, user_story_ref, token, search_url):
             print("Search API return some error", response.status_code)
             # execute_query_param(
             #     f"""UPDATE tcg.qna SET answer= "{response_json["answer"]}",knowledge_exist=1 where project_id={pr_id} and userstory_id={user_story_ref} and id={row['id']}""")
+
+def context_Extrator(pr_id, user_story_ref, token, context_url):
+    user_story_detail = f"""SELECT project_id,detail FROM tcg.userstory where _id={user_story_ref} and project_id={pr_id}"""
+    storydetail = getDBRecord(user_story_detail, False)
+    user_story = storydetail['detail']
+    payload = {
+        "query": user_story
+        }
+
+        # url = "http://127.0.0.1:8777/search"
+    url = context_url
+    headers = {
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {token}"
+        }
+    response = requests.post(url, json=payload, headers=headers)
+    if response.status_code == 200:
+        return response
+    else:
+            print("Search API return some error", response.status_code)
 
 def knowledge_Creater(record_id, token, search_url):
     query_list = getDBRecord(f"""SELECT * FROM tcg.qna where id = {record_id}""",

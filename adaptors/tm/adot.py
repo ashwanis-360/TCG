@@ -1,7 +1,5 @@
-import base64
-import requests
-from aiohttp import Payload
 
+from aiohttp import Payload
 from adaptors.tm.tool_publishers import BaseToolPublisher
 import json
 import html

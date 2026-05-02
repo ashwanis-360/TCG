@@ -1,4 +1,3 @@
-import base64
 import io
 import os
 from email import policy
@@ -1037,3 +1036,39 @@ def additional_context(userstrory_ref):
         )
 
     return "\n".join(structured)
+
+
+def execute_many(query: str, records: list) -> None:
+    """
+    Executes a bulk parameterized query using executemany.
+    Use for bulk INSERT / UPDATE operations.
+
+    Args:
+        query   : Parameterized SQL string with %s placeholders
+        records : List of tuples, one per row
+    """
+    if not records:
+        print("[execute_many] No records provided — skipping.")
+        return
+
+    conn = None
+    cursor = None
+
+    try:
+        conn = getdb_Connection()  # replace with your actual connection getter
+        cursor = conn.cursor()
+        cursor.executemany(query, records)
+        conn.commit()
+        print(f"[execute_many] {cursor.rowcount} rows affected.")
+
+    except Exception as e:
+        if conn:
+            conn.rollback()
+        print(f"[execute_many] Failed: {str(e)}")
+        raise
+
+    finally:
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()

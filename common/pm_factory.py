@@ -1,7 +1,6 @@
 import os
 import requests
 from dotenv import load_dotenv
-from common.utilities import getDBRecord
 
 
 # **********************Need to Rename is as factory**********************

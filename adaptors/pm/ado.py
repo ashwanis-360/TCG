@@ -1,28 +1,9 @@
 import requests
-import base64
-from typing import Dict, Any, List
-
 from requests.auth import HTTPBasicAuth
-
 from adaptors.pm.pm_base_adaptor import PMBaseAdapter
-
-
 class AzureDevOpsAdapter(PMBaseAdapter):
 
-    # def _get_auth_header(self):
-    #     """
-    #     Azure DevOps uses PAT with Basic Auth
-    #     Username is empty, PAT is password
-    #     """
-    #     username = self.publisher.get_integration_credential('username')
-    #     password = self.publisher.get_integration_credential('password')
-    #     # pat = self.publisher.get_integration_credential('pat')
-    #     # token = f":{pat}"
-    #     encoded_token = base64.b64encode(token.encode()).decode()
-    #     return {
-    #         "Authorization": f"Basic {encoded_token}",
-    #         "Content-Type": "application/json"
-    #     }
+
 
     def read(self, query_params: dict) -> dict:
         """

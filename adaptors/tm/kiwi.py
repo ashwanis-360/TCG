@@ -1,10 +1,6 @@
 import os
-
 from flask import jsonify
-
 from adaptors.tm.tool_publishers import BaseToolPublisher
-import json
-import requests
 import ssl
 import xmlrpc.client
 from tcms_api import TCMS
