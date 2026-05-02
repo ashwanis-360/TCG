@@ -15,3 +15,4 @@ tcms-api
 extract_msg
 json-repair
 tiktoken
+aiohttp

@@ -1,5 +1,3 @@
-
-from aiohttp import Payload
 from adaptors.tm.tool_publishers import BaseToolPublisher
 import json
 import html
@@ -92,7 +90,7 @@ class AzureDevOpsPublisher(BaseToolPublisher):
         #     {"op": "add", "path": "/fields/Microsoft.VSTS.TCM.Steps", "value": steps_xml}
         # ]
         payload= self.build_ado_payload(test_case, steps_xml)
-        print("Payload to Generate the Test Case",Payload)
+        print("Payload to Generate the Test Case",payload)
 
         response = requests.post(url, headers=headers, json=payload, auth=auth)
 
